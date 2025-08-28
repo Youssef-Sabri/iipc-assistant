@@ -9,7 +9,7 @@
 
 > **AI-Powered Web Archiving Research Platform**
 > 
-> Explore conference materials, research papers, and presentations from the International Internet Preservation Consortium with intelligent search capabilities powered by advanced vector embeddings and generative AI.
+> Explore conference materials, posters, videos transcripts, and presentations from the International Internet Preservation Consortium with intelligent search capabilities powered by advanced vector embeddings and generative AI.
 
 ## 🌟 Features
 
@@ -17,7 +17,7 @@
 - **Semantic Search**: Find relevant materials using natural language queries
 - **AI-Powered Responses**: Get contextual answers from IIPC conference materials
 - **Real-time Chat Interface**: Interactive conversation with typing animations
-- 
+
 ### 📚 **Comprehensive Archive Access**
 - **Multi-format Support**: Posters, presentations, videos transcripts, and research materials
 - **Advanced Filtering**: Filter by year, type, author, and subject
@@ -32,7 +32,6 @@
 - **Vector Database**: FAISS-powered similarity search
 - **Modern Architecture**: React + TypeScript frontend, Flask backend
 - **API Integration**: Gemini AI for response generation
-- **Scalable Infrastructure**: Containerized deployment ready
 
 ## 📓 Data Pipeline Development
 
@@ -216,8 +215,6 @@ graph TB
 - **React 18** with TypeScript for type safety
 - **Tailwind CSS** for responsive styling
 - **Vite** for fast development and building
-- **Lucide React** for consistent iconography
-- **React Router** for client-side routing
 - **Supabase** for PostgreSQL database and real-time features
 
 
@@ -340,6 +337,7 @@ iipc-assistant/
 │   │   │   ├── Index.tsx     # Home page
 │   │   │   ├── Chat.tsx      # Chat interface
 │   │   │   ├── About.tsx     # About IIPC page
+|   |   |   ├── Browse.tsx    # Search materials
 │   │   │   └── NotFound.tsx  # 404 error page
 │   │   ├── hooks/            # Custom React hooks
 │   │   │   └── use-iipc-data.ts # Supabase data hooks
@@ -431,13 +429,11 @@ Pre-processed embeddings stored in `embeddings.pkl` containing:
 2. **Text Preparation**: Titles, descriptions, and content are combined
 3. **Vectorization**: BAAI/bge-base-en-v1.5 model generates high-quality embeddings
 4. **Indexing**: FAISS creates efficient searchable vector index
-5. **Storage**: Pickle serialization for fast loading and retrieval
 
 ### **BGE Model Specifications**
 - **Model**: BAAI/bge-base-en-v1.5
 - **Embedding Dimension**: 768
 - **Language**: English
-- **Performance**: State-of-the-art on MTEB leaderboard
 - **Use Case**: Optimized for retrieval and semantic search tasks
 
 ## 🎨 UI/UX Design
@@ -455,53 +451,6 @@ Pre-processed embeddings stored in `embeddings.pkl` containing:
 - **Tablet**: `640px - 1024px`
 - **Desktop**: `> 1024px`
 
-## 🚀 Deployment
-
-### Docker Deployment
-
-1. **Build Docker Images**
-   ```bash
-   # Backend
-   cd Backend
-   docker build -t iipc-backend .
-   
-   # Frontend
-   cd Frontend
-   docker build -t iipc-frontend .
-   ```
-
-2. **Run with Docker Compose**
-   ```bash
-   docker-compose up -d
-   ```
-
-### Production Considerations
-
-- **Environment Variables**: Use secure secret management
-- **HTTPS**: Enable SSL/TLS encryption
-- **Rate Limiting**: Implement API rate limiting
-- **Monitoring**: Add application monitoring and logging
-- **Caching**: Implement response caching for better performance
-
-## 🧪 Testing
-
-### Backend Testing
-```bash
-cd Backend
-python -m pytest tests/
-```
-
-### Frontend Testing
-```bash
-cd Frontend
-npm run test
-```
-
-### End-to-End Testing
-```bash
-npm run test:e2e
-```
-
 ### Development Workflow
 
 1. **Fork** the repository
@@ -509,12 +458,6 @@ npm run test:e2e
 3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
 4. **Push** to the branch (`git push origin feature/amazing-feature`)
 5. **Open** a Pull Request
-
-### Code Standards
-
-- **Python**: Follow PEP 8 style guidelines
-- **TypeScript**: Use ESLint and Prettier for consistent formatting
-- **Commit Messages**: Use conventional commit format
 
 ## 📝 License
 
@@ -528,14 +471,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Supabase** for providing excellent database and real-time infrastructure
 - **FAISS** team for efficient similarity search
 - **Open Source Community** for the amazing tools and libraries
-
-
-## 🔮 Roadmap
-
-- [ ] **Multi-language Support**: Internationalization for global users
-- [ ] **Advanced Filters**: More granular search and filter options
-- [ ] **Export Features**: PDF and citation export functionality
-- [ ] **User Accounts**: Personal collections and saved searches
-- [ ] **API Rate Limiting**: Enhanced security and usage controls
-- [ ] **Real-time Updates**: Live data synchronization
-- [ ] **Mobile App**: Native mobile applications

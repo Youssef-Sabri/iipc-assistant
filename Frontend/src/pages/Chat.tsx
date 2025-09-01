@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { ChatInput } from "@/components/chat/ChatInput";
 
@@ -40,6 +40,9 @@ export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
+  // Keep the typing timeout ID so we can cancel it if we flush the typing early
+  const typingTimeoutRef = useRef<number | null>(null);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -61,6 +64,16 @@ export default function Chat() {
     };
   }, []);
 
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current !== null) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
   const handleSendMessage = async (content: string) => {
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -69,7 +82,30 @@ export default function Chat() {
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    // If there's currently an assistant message that is typing, flush it immediately
+    setMessages(prev => {
+      let flushed = false;
+      const updated = prev.map(msg => {
+        if (!flushed && msg.role === "assistant" && msg.isTyping) {
+          flushed = true;
+          // cancel the pending typing timeout (if any)
+          if (typingTimeoutRef.current !== null) {
+            clearTimeout(typingTimeoutRef.current);
+            typingTimeoutRef.current = null;
+          }
+          return {
+            ...msg,
+            content: msg.fullContent ?? msg.content,
+            isTyping: false,
+            fullContent: undefined
+          };
+        }
+        return msg;
+      });
+      // Append the new user message after flushing
+      return [...updated, userMessage];
+    });
+
     setIsLoading(true);
 
     try {
@@ -99,19 +135,34 @@ export default function Chat() {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-      setIsLoading(false); 
+      setIsLoading(false);
 
+      // Simulate typing: compute duration and schedule final reveal
       const typingDuration = (fullText.length / 30) * 1000; 
-      setTimeout(() => {
+      // Clear any previous timeout reference just in case
+      if (typingTimeoutRef.current !== null) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
+
+      const timeoutId = window.setTimeout(() => {
         setMessages(prev => prev.map(msg =>
           msg.id === newMessageId 
             ? { ...msg, content: fullText, isTyping: false, fullContent: undefined }
             : msg
         ));
+        typingTimeoutRef.current = null;
       }, typingDuration + 100);
+
+      typingTimeoutRef.current = timeoutId;
 
     } catch (error) {
       console.error("Failed to fetch assistant response:", error);
+      // If there was a typing message pending, flush it (safety)
+      if (typingTimeoutRef.current !== null) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
       setMessages(prev => [
         ...prev,
         {

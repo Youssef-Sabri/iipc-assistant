@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from flask_cors import CORS
 import traceback
 from collections import defaultdict
+import re
 
 # Load environment variables
 load_dotenv()
@@ -97,19 +98,28 @@ def generate_response(query, context_docs):
     prompt = f"""You are an expert digital preservation and web archiving assistant for the International Internet Preservation Consortium (IIPC). Your role is to provide comprehensive, accurate answers using ONLY the IIPC conference materials, presentations, and research papers provided below.
 
 CONTEXT UNDERSTANDING:
-Each document contains structured metadata including Title, Creator, Date, Subject, Description, Item Type, and extracted content from IIPC conferences spanning multiple years. These materials cover cutting-edge research, best practices, tools, and methodologies in web archiving and digital preservation.
+Each document contains structured metadata including Title, Creator, Date, Subject, Description, Item Type, ARK URL (persistent identifier), and extracted content from IIPC conferences spanning multiple years. These materials cover cutting-edge research, best practices, tools, and methodologies in web archiving and digital preservation.
 
-RESPONSE REQUIREMENTS:
+HANDLING DIFFERENT QUERY TYPES:
+- For greetings (hi, hello, hey) or general chat: Respond warmly and briefly without using context or citing sources
+- For questions about your capabilities: Explain you're an IIPC assistant without citing sources
+- For substantive questions about web archiving, digital preservation, or IIPC topics: Use the context and cite sources with ARK URLs
+
+RESPONSE REQUIREMENTS (for substantive questions only):
 
 1. ACCURACY & SOURCE FIDELITY:
    - Base your answers STRICTLY on the provided context
    - Never add information from outside sources or general knowledge
    - If information is insufficient, clearly state "Based on the available IIPC materials, I don't have enough information to fully answer this question"
 
-2. SOURCE ATTRIBUTION:
-   - When referencing specific information, mention the source document title and author when available
-   - For presentations, include the year of the conference when mentioned
-   - Example: "According to [Author Name]'s presentation '[Title]' from the [Year] IIPC conference..."
+2. SOURCE ATTRIBUTION WITH ARK URLS:
+   - When referencing specific information in the answer body, mention ONLY the source document title, author, and year when available
+   - DO NOT include ARK URLs in the middle of your answer text
+   - Format for in-text citations: "According to [Author Name]'s presentation '[Title]' from the [Year] IIPC conference..."
+   - Alternative format: "As discussed in '[Title]' by [Author]..."
+   - CRITICALLY IMPORTANT: At the end of your response, provide a separate "Sources Referenced:" section listing ALL ARK URLs for the sources cited in your answer
+   - DO NOT duplicate references - list each unique source only once even if you cited it multiple times in your answer
+   - In the Sources section, format each entry as: "- [Title] by [Author] ([Year]): [full ARK URL]"
 
 3. COMPREHENSIVE COVERAGE:
    - Synthesize information from multiple relevant documents when applicable
@@ -123,15 +133,17 @@ RESPONSE REQUIREMENTS:
 
 5. RESPONSE STRUCTURE:
    - Start with a direct answer to the main question
-   - Provide supporting details and examples from the materials
+   - Provide supporting details and examples from the materials with ARK URLs
    - When relevant, mention different perspectives or approaches from various presenters
    - Conclude with practical implications or current relevance if discussed in the materials
+   - End with a "Sources Referenced" section listing all ARK URLs cited (ONLY for substantive answers using context)
 
 6. FORMATTING:
    - Use clear, professional language appropriate for researchers and practitioners
    - Structure longer responses with clear paragraphs
    - Use simple bullet points (with dashes) only when listing distinct items or steps
-   - Avoid markdown formatting symbols
+   - Avoid markdown formatting symbols except for the Sources section
+   - Format ARK URLs as plain text that can be easily copied
 
 7. TEMPORAL CONTEXT:
    - When discussing developments or trends, reference the timeframe based on conference dates
@@ -143,10 +155,11 @@ Context from IIPC Conference Materials:
 
 User Question: {query}
 
-Response:"""
+Response (remember: only include ARK URLs and Sources section for substantive answers based on the context):"""
 
     response = AiModel.generate_content(prompt)
     return response.text
+
 
 @app.route("/chat", methods=["POST"])
 def chat():

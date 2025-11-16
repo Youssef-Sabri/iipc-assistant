@@ -161,6 +161,11 @@ Response (remember: only include ARK URLs and Sources section for substantive an
     return response.text
 
 
+# Simple ping route to keep the app awake
+@app.route("/ping", methods=["GET"])
+def ping():
+    return "pong", 200
+
 @app.route("/chat", methods=["POST"])
 def chat():
     try:

@@ -4,7 +4,7 @@ import numpy as np
 import faiss
 import requests
 from flask import Flask, request, jsonify
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 from flask_cors import CORS
 import traceback
@@ -45,8 +45,7 @@ index = faiss.IndexFlatL2(embeddings.shape[1])
 index.add(embeddings)
 
 # Configure Gemini API
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-AiModel = genai.GenerativeModel("gemini-2.5-flash-lite")
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 # Load remote embedding API URL
 REMOTE_EMBEDDING_API = os.getenv("VITE_EMBEDDING_API_URL")
@@ -165,7 +164,11 @@ User Question: {query}
 
 Response (remember: only include ARK URLs and Sources section for substantive answers based on the context):"""
 
-    response = AiModel.generate_content(prompt)
+    # Corrected method to generate content using the new SDK
+    response = client.models.generate_content(
+        model="gemini-2.5-flash-lite",
+        contents=prompt
+    )
     return response.text
 
 

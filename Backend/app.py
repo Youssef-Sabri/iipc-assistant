@@ -99,10 +99,19 @@ def retrieve_top_k(query, k_chunks=30, k_docs=3, k_final=10):
     return final_results
 
 def generate_response(query, context_docs):
-    context_parts = []
+    # --- DEDUPLICATION LOGIC: Group multiple chunks by their Source ID ---
+    grouped_docs = defaultdict(list)
     for doc in context_docs:
-        context_parts.append(f"{doc['combined_text']}\n----")
-    context = "\n".join(context_parts)
+        grouped_docs[doc['doc_id']].append(doc['combined_text'])
+    
+    context_parts = []
+    for doc_id, chunks in grouped_docs.items():
+        # Combine all paragraphs belonging to the same document
+        doc_content = "\n".join(chunks)
+        context_parts.append(f"SOURCE ID: {doc_id}\n{doc_content}\n----")
+    
+    context = "\n\n".join(context_parts)
+    # ---------------------------------------------------------------------
 
     prompt = f"""You are an expert digital preservation and web archiving assistant for the International Internet Preservation Consortium (IIPC). Your role is to provide comprehensive, accurate answers using ONLY the IIPC conference materials, presentations, and research papers provided below.
 
@@ -167,7 +176,7 @@ User Question: {query}
 Response (remember: only include ARK URLs and Sources section for substantive answers based on the context):"""
 
     response = client.models.generate_content(
-        model="gemini-2.5-flash-lite",
+        model="gemini-1.5-flash", 
         contents=prompt
     )
     return response.text
@@ -175,21 +184,11 @@ Response (remember: only include ARK URLs and Sources section for substantive an
 # --- HARD SECURITY CHECK TO BYPASS HF PROXY ---
 @app.before_request
 def restrict_origins():
-    # Only lock down the chat endpoint, let the home page and ping run normally
     if request.path == "/chat" and request.method == "POST":
         origin = request.headers.get('Origin')
-        
-        # Allowed frontend URLs
-        allowed_origins = [
-            "https://iipc-assistant.vercel.app",
-            "https://huggingface.co"
-        ]
-        
-        # Block unauthorized origins
-        if origin and origin not in allowed_origins:
+        allowed_origins = ["https://iipc-assistant.vercel.app", "https://huggingface.co"]
+        if not origin or origin not in allowed_origins:
             return jsonify({"error": "Unauthorized. API restricted to official frontend."}), 403
-            
-        # Block requests that don't even have an origin (like Postman or raw cURL, optional but very secure)
         if not origin:
             return jsonify({"error": "Direct API access forbidden."}), 403
 # ----------------------------------------------

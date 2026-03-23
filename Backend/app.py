@@ -164,13 +164,16 @@ User Question: {query}
 
 Response (remember: only include ARK URLs and Sources section for substantive answers based on the context):"""
 
-    # Corrected method to generate content using the new SDK
     response = client.models.generate_content(
         model="gemini-2.5-flash-lite",
         contents=prompt
     )
     return response.text
 
+# Added this new route so the main page doesn't show "Not Found"
+@app.route("/", methods=["GET"])
+def home():
+    return "Backend is running successfully!", 200
 
 @app.route("/ping", methods=["GET"])
 def ping():

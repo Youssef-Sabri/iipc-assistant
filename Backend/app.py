@@ -9,17 +9,32 @@ from dotenv import load_dotenv
 from flask_cors import CORS
 import traceback
 from collections import defaultdict
-import re
 
-# Load environment variables
+# Load environment variables (local dev only, ignored on HF)
 load_dotenv()
+
+# ─── Download embeddings from HF Dataset if not present ───────────────────────
+PKL_PATH = "embeddings_v3.pkl"
+
+if not os.path.exists(PKL_PATH):
+    print("Downloading embeddings_v3.pkl from Hugging Face...")
+    HF_USER = os.getenv("HF_USERNAME")          # set this in HF Secrets
+    HF_DATASET = os.getenv("HF_DATASET_NAME")   # set this in HF Secrets
+    url = f"https://huggingface.co/datasets/{HF_USER}/{HF_DATASET}/resolve/main/embeddings_v3.pkl"
+    r = requests.get(url, stream=True)
+    r.raise_for_status()
+    with open(PKL_PATH, "wb") as f:
+        for chunk in r.iter_content(chunk_size=8192):
+            f.write(chunk)
+    print("Download complete!")
+# ──────────────────────────────────────────────────────────────────────────────
 
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app)
 
 # Load FAISS index and texts
-with open("embeddings_v3.pkl", "rb") as f:
+with open(PKL_PATH, "rb") as f:
     data = pickle.load(f)
 
 embeddings = np.array(data["embeddings"]).astype("float32")
@@ -33,7 +48,7 @@ index.add(embeddings)
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 AiModel = genai.GenerativeModel("gemini-2.5-flash-lite")
 
-# Load remote embedding API URL from .env
+# Load remote embedding API URL
 REMOTE_EMBEDDING_API = os.getenv("VITE_EMBEDDING_API_URL")
 
 # Call Hugging Face embedding API
@@ -57,7 +72,6 @@ def retrieve_top_k(query, k_chunks=30, k_docs=3, k_final=10):
 
     distances, indices = index.search(np.array([query_embedding]).astype("float32"), k_chunks)
 
-    # Collect initial results with doc_id
     retrieved = []
     for idx, dist in zip(indices[0], distances[0]):
         retrieved.append({
@@ -66,33 +80,27 @@ def retrieve_top_k(query, k_chunks=30, k_docs=3, k_final=10):
             "score": float(dist)
         })
 
-    # Group by doc_id
     doc_scores = defaultdict(list)
     for r in retrieved:
         doc_scores[r["doc_id"]].append(r)
 
-    # Rank docs by their best chunk score (lower distance = better)
     ranked_docs = sorted(
         doc_scores.items(),
         key=lambda x: min(c["score"] for c in x[1])
     )[:k_docs]
 
-    # From these top docs, flatten all chunks and re-sort
     selected_chunks = []
     for _, chunks in ranked_docs:
         chunks_sorted = sorted(chunks, key=lambda c: c["score"])
         selected_chunks.extend(chunks_sorted)
 
-    # Take top k_final chunks overall
     final_results = sorted(selected_chunks, key=lambda c: c["score"])[:k_final]
     return final_results
 
 def generate_response(query, context_docs):
     context_parts = []
     for doc in context_docs:
-        context_parts.append(
-            f"{doc['combined_text']}\n----"
-        )
+        context_parts.append(f"{doc['combined_text']}\n----")
     context = "\n".join(context_parts)
 
     prompt = f"""You are an expert digital preservation and web archiving assistant for the International Internet Preservation Consortium (IIPC). Your role is to provide comprehensive, accurate answers using ONLY the IIPC conference materials, presentations, and research papers provided below.
@@ -161,7 +169,6 @@ Response (remember: only include ARK URLs and Sources section for substantive an
     return response.text
 
 
-# Simple ping route to keep the app awake
 @app.route("/ping", methods=["GET"])
 def ping():
     return "pong", 200

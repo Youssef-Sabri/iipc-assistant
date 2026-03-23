@@ -1,6 +1,5 @@
 Flask
 flask-cors
-sentence-transformers
 numpy
 faiss-cpu
 python-dotenv

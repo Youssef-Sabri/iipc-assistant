@@ -176,7 +176,7 @@ User Question: {query}
 Response (remember: only include ARK URLs and Sources section for substantive answers based on the context):"""
 
     response = client.models.generate_content(
-        model="gemini-1.5-flash", 
+        model="gemini-2.5-flash-lite", 
         contents=prompt
     )
     return response.text

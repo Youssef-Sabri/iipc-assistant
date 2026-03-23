@@ -31,7 +31,9 @@ if not os.path.exists(PKL_PATH):
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)
+
+# Secure CORS: Only allow requests from your Vercel frontend
+CORS(app, resources={r"/*": {"origins": "https://iipc-assistant.vercel.app"}})
 
 # Load FAISS index and texts
 with open(PKL_PATH, "rb") as f:
@@ -44,7 +46,7 @@ doc_ids = data["doc_ids"]
 index = faiss.IndexFlatL2(embeddings.shape[1])
 index.add(embeddings)
 
-# Configure Gemini API
+# Configure Gemini API using the new SDK
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 # Load remote embedding API URL
@@ -170,10 +172,9 @@ Response (remember: only include ARK URLs and Sources section for substantive an
     )
     return response.text
 
-# Added this new route so the main page doesn't show "Not Found"
 @app.route("/", methods=["GET"])
 def home():
-    return "Backend is running successfully!", 200
+    return "Backend is running successfully! Connected to Vercel Frontend.", 200
 
 @app.route("/ping", methods=["GET"])
 def ping():

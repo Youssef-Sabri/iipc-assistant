@@ -32,7 +32,7 @@ if not os.path.exists(PKL_PATH):
 # Initialize Flask app
 app = Flask(__name__)
 
-# Secure CORS: Only allow requests from your Vercel frontend
+# Secure CORS: Tell browsers to only allow your Vercel frontend
 CORS(app, resources={r"/*": {"origins": "https://iipc-assistant.vercel.app"}})
 
 # Load FAISS index and texts
@@ -171,6 +171,28 @@ Response (remember: only include ARK URLs and Sources section for substantive an
         contents=prompt
     )
     return response.text
+
+# --- HARD SECURITY CHECK TO BYPASS HF PROXY ---
+@app.before_request
+def restrict_origins():
+    # Only lock down the chat endpoint, let the home page and ping run normally
+    if request.path == "/chat" and request.method == "POST":
+        origin = request.headers.get('Origin')
+        
+        # Allowed frontend URLs
+        allowed_origins = [
+            "https://iipc-assistant.vercel.app",
+            "https://huggingface.co"
+        ]
+        
+        # Block unauthorized origins
+        if origin and origin not in allowed_origins:
+            return jsonify({"error": "Unauthorized. API restricted to official frontend."}), 403
+            
+        # Block requests that don't even have an origin (like Postman or raw cURL, optional but very secure)
+        if not origin:
+            return jsonify({"error": "Direct API access forbidden."}), 403
+# ----------------------------------------------
 
 @app.route("/", methods=["GET"])
 def home():

@@ -155,7 +155,7 @@ def generate_response(query, context_docs):
             model="gemini-3.1-flash-lite-preview",
             contents=prompt,
         )
-        response = future.result(timeout=12)
+        response = future.result(timeout=15)
         executor.shutdown(wait=False)
         print("[✅ LLM] Using: gemini-3.1-flash-lite-preview (Gemini)")
         return response.text, "gemini-3.1-flash-lite-preview"

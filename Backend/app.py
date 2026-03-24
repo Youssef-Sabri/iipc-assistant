@@ -113,73 +113,36 @@ def generate_response(query, context_docs):
     context = "\n\n".join(context_parts)
     # ---------------------------------------------------------------------
 
-    prompt = f"""You are an expert digital preservation and web archiving assistant for the International Internet Preservation Consortium (IIPC). Your role is to provide comprehensive, accurate answers using ONLY the IIPC conference materials, presentations, and research papers provided below.
+    prompt = f"""You are an IIPC digital preservation and web archiving assistant. Answer using ONLY the provided conference materials below.
 
-CONTEXT UNDERSTANDING:
-Each document contains structured metadata including Title, Creator, Date, Subject, Description, Item Type, ARK URL (persistent identifier), and extracted content from IIPC conferences spanning multiple years. These materials cover cutting-edge research, best practices, tools, and methodologies in web archiving and digital preservation.
+QUERY HANDLING:
+- Greetings/capability questions: Respond briefly, no citations needed
+- Substantive questions: Use context strictly, cite sources
 
-HANDLING DIFFERENT QUERY TYPES:
-- For greetings (hi, hello, hey) or general chat: Respond warmly and briefly without using context or citing sources
-- For questions about your capabilities: Explain you're an IIPC assistant without citing sources
-- For substantive questions about web archiving, digital preservation, or IIPC topics: Use the context and cite sources with ARK URLs
+RULES:
+1. Never use outside knowledge. If insufficient info: "Based on available IIPC materials, I don't have enough information to fully answer this."
+2. In-text citations: "According to [Author]'s '[Title]' ([Year])..." — NO ARK URLs inline
+3. End substantive answers with a "Sources Referenced:" section:
+   - [Title] by [Author] ([Year]): [ARK URL]
+   (Each source listed once only)
+4. Use precise web archiving terminology (WARC, etc.)
+5. Synthesize across documents; note how topics evolved over conference years
+6. Plain text only — no markdown except in Sources section
 
-RESPONSE REQUIREMENTS (for substantive questions only):
-
-1. ACCURACY & SOURCE FIDELITY:
-   - Base your answers STRICTLY on the provided context
-   - Never add information from outside sources or general knowledge
-   - If information is insufficient, clearly state "Based on the available IIPC materials, I don't have enough information to fully answer this question"
-
-2. SOURCE ATTRIBUTION WITH ARK URLS:
-   - When referencing specific information in the answer body, mention ONLY the source document title, author, and year when available
-   - DO NOT include ARK URLs in the middle of your answer text
-   - Format for in-text citations: "According to [Author Name]'s presentation '[Title]' from the [Year] IIPC conference..."
-   - Alternative format: "As discussed in '[Title]' by [Author]..."
-   - CRITICALLY IMPORTANT: At the end of your response, provide a separate "Sources Referenced:" section listing ALL ARK URLs for the sources cited in your answer
-   - DO NOT duplicate references - list each unique source only once even if you cited it multiple times in your answer
-   - In the Sources section, format each entry as: "- [Title] by [Author] ([Year]): [full ARK URL]"
-
-3. COMPREHENSIVE COVERAGE:
-   - Synthesize information from multiple relevant documents when applicable
-   - Provide context about the evolution of topics across different conference years
-   - Include both theoretical concepts and practical implementations mentioned
-
-4. TECHNICAL ACCURACY:
-   - Use precise terminology from web archiving and digital preservation fields
-   - Explain technical concepts clearly while maintaining accuracy
-   - Reference specific tools, standards (like WARC), and methodologies mentioned in the materials
-
-5. RESPONSE STRUCTURE:
-   - Start with a direct answer to the main question
-   - Provide supporting details and examples from the materials with ARK URLs
-   - When relevant, mention different perspectives or approaches from various presenters
-   - Conclude with practical implications or current relevance if discussed in the materials
-   - End with a "Sources Referenced" section listing all ARK URLs cited (ONLY for substantive answers using context)
-
-6. FORMATTING:
-   - Use clear, professional language appropriate for researchers and practitioners
-   - Structure longer responses with clear paragraphs
-   - Use simple bullet points (with dashes) only when listing distinct items or steps
-   - Avoid markdown formatting symbols except for the Sources section
-   - Format ARK URLs as plain text that can be easily copied
-
-7. TEMPORAL CONTEXT:
-   - When discussing developments or trends, reference the timeframe based on conference dates
-   - Highlight how approaches or technologies have evolved according to the materials
-   - Note any historical context provided in the presentations
-
-Context from IIPC Conference Materials:
+Context:
 {context}
 
-User Question: {query}
+Question: {query}
 
-Response (remember: only include ARK URLs and Sources section for substantive answers based on the context):"""
+Answer:"""
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash-lite-preview", 
-        contents=prompt
+    response = groq_client.chat.completions.create(
+        model="meta-llama/llama-4-scout-17b-16e-instruct",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=1500,
+        temperature=0.4
     )
-    return response.text
+    return response.choices[0].message.content
 
 # --- HARD SECURITY CHECK TO BYPASS HF PROXY ---
 @app.before_request

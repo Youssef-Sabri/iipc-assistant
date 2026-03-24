@@ -4,5 +4,6 @@ numpy
 faiss-cpu
 python-dotenv
 google-genai
+groq
 gunicorn
 requests

@@ -3,8 +3,10 @@ import pickle
 import numpy as np
 import faiss
 import requests
+import concurrent.futures
 from flask import Flask, request, jsonify
 from google import genai
+from groq import Groq
 from dotenv import load_dotenv
 from flask_cors import CORS
 import traceback
@@ -48,6 +50,14 @@ index.add(embeddings)
 
 # Configure Gemini API using the new SDK
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+
+# Configure Groq fallback client
+groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+# Groq fallback model (used when Gemini fails)
+GROQ_FALLBACK_MODELS = [
+    "meta-llama/llama-4-scout-17b-16e-instruct",  # 30K TPM, 500K/day
+]
 
 # Load remote embedding API URL
 REMOTE_EMBEDDING_API = os.getenv("VITE_EMBEDDING_API_URL")
@@ -98,23 +108,20 @@ def retrieve_top_k(query, k_chunks=30, k_docs=3, k_final=10):
     final_results = sorted(selected_chunks, key=lambda c: c["score"])[:k_final]
     return final_results
 
-def generate_response(query, context_docs):
-    # --- DEDUPLICATION LOGIC: Group multiple chunks by their Source ID ---
+def _build_prompt(query, context_docs):
+    """Build the shared prompt string from query + retrieved context."""
     grouped_docs = defaultdict(list)
     for doc in context_docs:
         grouped_docs[doc['doc_id']].append(doc['combined_text'])
-    
+
     context_parts = []
     for doc_id, chunks in grouped_docs.items():
-        # Combine all paragraphs belonging to the same document
         doc_content = "\n".join(chunks)
         context_parts.append(f"SOURCE ID: {doc_id}\n{doc_content}\n----")
-    
+
     context = "\n\n".join(context_parts)
-    # ---------------------------------------------------------------------
 
-
-    prompt = f"""You are an IIPC digital preservation and web archiving assistant. Answer using ONLY the provided conference materials below.
+    return f"""You are an IIPC digital preservation and web archiving assistant. Answer using ONLY the provided conference materials below.
 
 QUERY HANDLING:
 - Greetings/capability questions: Respond briefly, no citations needed
@@ -137,11 +144,42 @@ Question: {query}
 
 Answer:"""
 
-    response = client.models.generate_content(
-        model="gemini-3.1-flash-lite-preview", 
-        contents=prompt
-    )
-    return response.text
+
+def generate_response(query, context_docs):
+    prompt = _build_prompt(query, context_docs)
+
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    try:
+        future = executor.submit(
+            client.models.generate_content,
+            model="gemini-3.1-flash-lite-preview",
+            contents=prompt,
+        )
+        response = future.result(timeout=20)
+        executor.shutdown(wait=False)
+        print("[✅ LLM] Using: gemini-3.1-flash-lite-preview (Gemini)")
+        return response.text, "gemini-3.1-flash-lite-preview"
+    except Exception as gemini_err:
+        executor.shutdown(wait=False, cancel_futures=True)  # abandon stuck thread immediately
+        print(f"[⚠️  LLM] Gemini failed ({type(gemini_err).__name__}): {gemini_err} — falling back to Groq...")
+
+    # ── 2. Try Groq fallback model ─────────────────────────────────────
+    for model in GROQ_FALLBACK_MODELS:
+        try:
+            chat_completion = groq_client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=1500,
+                temperature=0.3,
+            )
+            print(f"[✅ LLM] Using: {model} (Groq fallback)")
+            return chat_completion.choices[0].message.content, model
+        except Exception as groq_err:
+            print(f"[❌ LLM] Groq model {model} failed: {groq_err}")
+
+    # ── 3. All models exhausted ─────────────────────────────────────────
+    print("[❌ LLM] All providers failed. Returning 503.")
+    raise RuntimeError("All LLM providers failed. Please try again later.")
 
 # --- HARD SECURITY CHECK TO BYPASS HF PROXY ---
 @app.before_request
@@ -179,10 +217,14 @@ def chat():
         if not context_docs:
             return jsonify({"response": "I don't know."})
 
-        answer = generate_response(query, context_docs)
-        print("Generated answer")
+        answer, model_used = generate_response(query, context_docs)
+        print(f"[✅ DONE] Query answered | model={model_used} | chunks={len(context_docs)}")
 
         return jsonify({"response": answer})
+    except RuntimeError as e:
+        # All LLM providers exhausted
+        print(f"[chat] All providers unavailable: {e}")
+        return jsonify({"error": "All AI providers are currently unavailable. Please try again later."}), 503
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": "Internal server error"}), 500

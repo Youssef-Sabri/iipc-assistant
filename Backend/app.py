@@ -174,16 +174,21 @@ def generate_response(query, context_docs):
     """Generate LLM response with Gemini primary and Groq fallback."""
     prompt = _build_prompt(query, context_docs)
 
-    # 1. Try Gemini (Wait for response or error)
-    # We no longer use a hard timeout here, as per user preference to wait for Gemini.
+    # 1. Try Gemini (30s timeout fallback)
+    # We use a ThreadPoolExecutor to wrap the call in a hard 30s timeout.
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     try:
-        response = genai_client.models.generate_content(
+        future = executor.submit(
+            genai_client.models.generate_content,
             model=GEMINI_MODEL,
             contents=prompt,
         )
+        response = future.result(timeout=30)
+        executor.shutdown(wait=False)
         logger.info(f"[✅ LLM] Responded via {GEMINI_MODEL} (Gemini)")
         return response.text, GEMINI_MODEL
     except Exception as e:
+        executor.shutdown(wait=False, cancel_futures=True)
         logger.warning(f"[⚠️ LLM] Gemini failed ({type(e).__name__}) — falling back to Groq...")
 
     # 2. Try Groq fallback chain

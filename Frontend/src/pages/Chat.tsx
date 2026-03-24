@@ -108,6 +108,18 @@ export default function Chat() {
 
     setIsLoading(true);
 
+    // Add placeholder assistant message immediately to show "Thinking..."
+    const newMessageId = (Date.now() + 1).toString();
+    const placeholderAssistantMessage: Message = {
+      id: newMessageId,
+      content: "",
+      role: "assistant",
+      timestamp: new Date(),
+      isTyping: true,
+      fullContent: "" // Will be set after fetch
+    };
+    setMessages(prev => [...prev, placeholderAssistantMessage]);
+
     try {
       const apiBaseUrl = import.meta.env.VITE_CHAT_API_URL || "";
       const response = await fetch(`${apiBaseUrl}/chat`, {
@@ -123,18 +135,13 @@ export default function Chat() {
       const data = await response.json();
       const fullText = data.response || "No response available.";
 
-      // Add assistant message with typing indicator
-      const newMessageId = (Date.now() + 1).toString();
-      const assistantMessage: Message = {
-        id: newMessageId,
-        content: "",
-        role: "assistant",
-        timestamp: new Date(),
-        isTyping: true,
-        fullContent: fullText
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
+      // Update the existing placeholder message with the actual content
+      setMessages(prev => prev.map(msg => 
+        msg.id === newMessageId 
+          ? { ...msg, fullContent: fullText }
+          : msg
+      ));
+      
       setIsLoading(false);
 
       // Simulate typing: compute duration and schedule final reveal

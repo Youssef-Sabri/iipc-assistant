@@ -189,6 +189,12 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 )
               )}
 
+              {!message.content && message.isTyping && (
+                <span className="text-muted-foreground/60 italic text-sm animate-pulse mr-2">
+                  Thinking...
+                </span>
+              )}
+
               {message.isTyping && (
                 <span
                   className="inline-block w-2 h-4 bg-current ml-1 animate-pulse"

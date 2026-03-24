@@ -1,82 +1,109 @@
 import os
 import pickle
+import logging
+import traceback
+import concurrent.futures
+from collections import defaultdict
+
 import numpy as np
 import faiss
 import requests
-import concurrent.futures
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from google import genai
 from groq import Groq
 from dotenv import load_dotenv
-from flask_cors import CORS
-import traceback
-from collections import defaultdict
 
-# Load environment variables (local dev only, ignored on HF)
-load_dotenv()
-
-# ─── Download embeddings from HF Dataset if not present ───────────────────────
-PKL_PATH = "embeddings_v3.pkl"
-
-if not os.path.exists(PKL_PATH):
-    print("Downloading embeddings_v3.pkl from Hugging Face...")
-    HF_USER = os.getenv("HF_USERNAME")          # set this in HF Secrets
-    HF_DATASET = os.getenv("HF_DATASET_NAME")   # set this in HF Secrets
-    url = f"https://huggingface.co/datasets/{HF_USER}/{HF_DATASET}/resolve/main/embeddings_v3.pkl"
-    r = requests.get(url, stream=True)
-    r.raise_for_status()
-    with open(PKL_PATH, "wb") as f:
-        for chunk in r.iter_content(chunk_size=8192):
-            f.write(chunk)
-    print("Download complete!")
+# ──────────────────────────────────────────────────────────────────────────────
+# CONFIGURATION & CONSTANTS
 # ──────────────────────────────────────────────────────────────────────────────
 
-# Initialize Flask app
-app = Flask(__name__)
+load_dotenv()
 
-# Secure CORS: Tell browsers to only allow your Vercel frontend
-CORS(app, resources={r"/*": {"origins": "https://iipc-assistant.vercel.app"}})
+# Logging Configuration
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+logger = logging.getLogger(__name__)
 
-# Load FAISS index and texts
-with open(PKL_PATH, "rb") as f:
-    data = pickle.load(f)
+# Paths & API URLs
+PKL_PATH = "embeddings_v3.pkl"
+REMOTE_EMBEDDING_API = os.getenv("VITE_EMBEDDING_API_URL")
 
-embeddings = np.array(data["embeddings"]).astype("float32")
+# Model Configuration
+GEMINI_MODEL = "gemini-3.1-flash-lite-preview"
+GROQ_FALLBACK_MODELS = ["meta-llama/llama-4-scout-17b-16e-instruct"]
+
+# Timeout Configuration (Seconds)
+GEMINI_TIMEOUT = 15
+EMBEDDING_TIMEOUT = 20
+
+# ──────────────────────────────────────────────────────────────────────────────
+# CORE INITIALIZATION
+# ──────────────────────────────────────────────────────────────────────────────
+
+def initialize_embeddings():
+    """Download embeddings from HF if not present and load them."""
+    if not os.path.exists(PKL_PATH):
+        logger.info("Downloading embeddings_v3.pkl from Hugging Face...")
+        hf_user = os.getenv("HF_USERNAME")
+        hf_dataset = os.getenv("HF_DATASET_NAME")
+        url = f"https://huggingface.co/datasets/{hf_user}/{hf_dataset}/resolve/main/{PKL_PATH}"
+        
+        try:
+            r = requests.get(url, stream=True)
+            r.raise_for_status()
+            with open(PKL_PATH, "wb") as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            logger.info("Download complete!")
+        except Exception as e:
+            logger.error(f"Failed to download embeddings: {e}")
+            raise
+
+    with open(PKL_PATH, "rb") as f:
+        data = pickle.load(f)
+    
+    return data
+
+# Load Data & Index
+data = initialize_embeddings()
+embeddings_matrix = np.array(data["embeddings"]).astype("float32")
 combined_texts = data["combined_texts"]
 doc_ids = data["doc_ids"]
 
-index = faiss.IndexFlatL2(embeddings.shape[1])
-index.add(embeddings)
+index = faiss.IndexFlatL2(embeddings_matrix.shape[1])
+index.add(embeddings_matrix)
 
-# Configure Gemini API using the new SDK
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+# Initialize API Clients
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "https://iipc-assistant.vercel.app"}})
 
-# Configure Groq fallback client
+genai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-# Groq fallback model (used when Gemini fails)
-GROQ_FALLBACK_MODELS = [
-    "meta-llama/llama-4-scout-17b-16e-instruct",  # 30K TPM, 500K/day
-]
+# ──────────────────────────────────────────────────────────────────────────────
+# RAG LOGIC & UTILITIES
+# ──────────────────────────────────────────────────────────────────────────────
 
-# Load remote embedding API URL
-REMOTE_EMBEDDING_API = os.getenv("VITE_EMBEDDING_API_URL")
-
-# Call Hugging Face embedding API
 def get_remote_embedding(text: str):
+    """Retrieve embedding for a given text from the remote API."""
     try:
         response = requests.post(
             REMOTE_EMBEDDING_API,
             json={"text": text},
-            timeout=20,
+            timeout=EMBEDDING_TIMEOUT,
         )
         response.raise_for_status()
         return response.json()["embedding"]
     except Exception as e:
-        print("Embedding API error:", str(e))
+        logger.error(f"Embedding API error: {e}")
         return None
 
 def retrieve_top_k(query, k_chunks=30, k_docs=3, k_final=10):
+    """Perform FAISS search and rank documents based on embedding similarity."""
     query_embedding = get_remote_embedding(query)
     if not query_embedding:
         return []
@@ -105,11 +132,10 @@ def retrieve_top_k(query, k_chunks=30, k_docs=3, k_final=10):
         chunks_sorted = sorted(chunks, key=lambda c: c["score"])
         selected_chunks.extend(chunks_sorted)
 
-    final_results = sorted(selected_chunks, key=lambda c: c["score"])[:k_final]
-    return final_results
+    return sorted(selected_chunks, key=lambda c: c["score"])[:k_final]
 
 def _build_prompt(query, context_docs):
-    """Build the shared prompt string from query + retrieved context."""
+    """Construct the final system prompt with retrieved context."""
     grouped_docs = defaultdict(list)
     for doc in context_docs:
         grouped_docs[doc['doc_id']].append(doc['combined_text'])
@@ -144,26 +170,27 @@ Question: {query}
 
 Answer:"""
 
-
 def generate_response(query, context_docs):
+    """Generate LLM response with Gemini primary and Groq fallback."""
     prompt = _build_prompt(query, context_docs)
 
+    # 1. Try Gemini with hard timeout
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     try:
         future = executor.submit(
-            client.models.generate_content,
-            model="gemini-3.1-flash-lite-preview",
+            genai_client.models.generate_content,
+            model=GEMINI_MODEL,
             contents=prompt,
         )
-        response = future.result(timeout=15)
+        response = future.result(timeout=GEMINI_TIMEOUT)
         executor.shutdown(wait=False)
-        print("[✅ LLM] Using: gemini-3.1-flash-lite-preview (Gemini)")
-        return response.text, "gemini-3.1-flash-lite-preview"
-    except Exception as gemini_err:
-        executor.shutdown(wait=False, cancel_futures=True)  # abandon stuck thread immediately
-        print(f"[⚠️  LLM] Gemini failed ({type(gemini_err).__name__}): {gemini_err} — falling back to Groq...")
+        logger.info(f"[✅ LLM] Responded via {GEMINI_MODEL} (Gemini)")
+        return response.text, GEMINI_MODEL
+    except Exception as e:
+        executor.shutdown(wait=False, cancel_futures=True)
+        logger.warning(f"[⚠️ LLM] Gemini failed ({type(e).__name__}) — falling back to Groq...")
 
-    # ── 2. Try Groq fallback model ─────────────────────────────────────
+    # 2. Try Groq fallback chain
     for model in GROQ_FALLBACK_MODELS:
         try:
             chat_completion = groq_client.chat.completions.create(
@@ -172,30 +199,30 @@ def generate_response(query, context_docs):
                 max_tokens=1500,
                 temperature=0.3,
             )
-            print(f"[✅ LLM] Using: {model} (Groq fallback)")
+            logger.info(f"[✅ LLM] Responded via {model} (Groq Fallback)")
             return chat_completion.choices[0].message.content, model
-        except Exception as groq_err:
-            print(f"[❌ LLM] Groq model {model} failed: {groq_err}")
+        except Exception as e:
+            logger.error(f"[❌ LLM] Groq model {model} failed: {e}")
 
-    # ── 3. All models exhausted ─────────────────────────────────────────
-    print("[❌ LLM] All providers failed. Returning 503.")
-    raise RuntimeError("All LLM providers failed. Please try again later.")
+    logger.error("[❌ LLM] All AI providers exhausted.")
+    raise RuntimeError("All LLM providers failed.")
 
-# --- HARD SECURITY CHECK TO BYPASS HF PROXY ---
+# ──────────────────────────────────────────────────────────────────────────────
+# ENDPOINTS & MIDDLEWARE
+# ──────────────────────────────────────────────────────────────────────────────
+
 @app.before_request
 def restrict_origins():
+    """Security check to strictly allow only official frontend origins."""
     if request.path == "/chat" and request.method == "POST":
         origin = request.headers.get('Origin')
         allowed_origins = ["https://iipc-assistant.vercel.app", "https://huggingface.co"]
         if not origin or origin not in allowed_origins:
-            return jsonify({"error": "Unauthorized. API restricted to official frontend."}), 403
-        if not origin:
-            return jsonify({"error": "Direct API access forbidden."}), 403
-# ----------------------------------------------
+            return jsonify({"error": "Unauthorized origin."}), 403
 
 @app.route("/", methods=["GET"])
 def home():
-    return "Backend is running successfully! Connected to Vercel Frontend.", 200
+    return "IIPC Assistant Backend is active.", 200
 
 @app.route("/ping", methods=["GET"])
 def ping():
@@ -203,31 +230,30 @@ def ping():
 
 @app.route("/chat", methods=["POST"])
 def chat():
+    """Main chat endpoint handling context retrieval and response generation."""
     try:
-        data_req = request.get_json()
-        query = data_req.get("query")
+        data = request.get_json()
+        query = data.get("query")
         if not query:
-            return jsonify({"error": "Query not provided"}), 400
+            return jsonify({"error": "Query is required."}), 400
 
-        print(f"Received query: {query}")
+        logger.info(f"Incoming Query: {query}")
 
         context_docs = retrieve_top_k(query)
-        print(f"Retrieved {len(context_docs)} context chunks")
+        logger.info(f"Context retrieval: {len(context_docs)} chunks found.")
 
         if not context_docs:
-            return jsonify({"response": "I don't know."})
+            return jsonify({"response": "I couldn't find relevant information in the IIPC archives."})
 
         answer, model_used = generate_response(query, context_docs)
-        print(f"[✅ DONE] Query answered | model={model_used} | chunks={len(context_docs)}")
+        logger.info(f"Success: Response generated by {model_used}")
 
         return jsonify({"response": answer})
-    except RuntimeError as e:
-        # All LLM providers exhausted
-        print(f"[chat] All providers unavailable: {e}")
-        return jsonify({"error": "All AI providers are currently unavailable. Please try again later."}), 503
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({"error": "Internal server error"}), 500
+    except RuntimeError:
+        return jsonify({"error": "All AI providers are currently unavailable."}), 503
+    except Exception:
+        logger.error(traceback.format_exc())
+        return jsonify({"error": "An internal server error occurred."}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=7860)

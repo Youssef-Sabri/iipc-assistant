@@ -179,21 +179,20 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 "[overflow-wrap:anywhere]"
               )}
             >
-              {contentNodes.map((node, idx) =>
-                typeof node === "string" ? (
-                  // Plain text
-                  <span key={`txt-${idx}`}>{node}</span>
-                ) : (
-                  // JSX element (anchor)
-                  <span key={`node-${idx}`}>{node}</span>
-                )
-              )}
-
-              {!message.content && message.isTyping && (
-                <span className="text-muted-foreground/60 italic text-sm animate-pulse mr-2">
+              {!displayedContent && message.isTyping && (
+                <span className="text-muted-foreground/60 italic text-sm animate-pulse">
                   Thinking...
                 </span>
               )}
+
+              {displayedContent &&
+                contentNodes.map((node, idx) =>
+                  typeof node === "string" ? (
+                    <span key={`txt-${idx}`}>{node}</span>
+                  ) : (
+                    <span key={`node-${idx}`}>{node}</span>
+                  )
+                )}
 
               {message.isTyping && (
                 <span

@@ -113,6 +113,7 @@ def generate_response(query, context_docs):
     context = "\n\n".join(context_parts)
     # ---------------------------------------------------------------------
 
+
     prompt = f"""You are an IIPC digital preservation and web archiving assistant. Answer using ONLY the provided conference materials below.
 
 QUERY HANDLING:
@@ -136,13 +137,11 @@ Question: {query}
 
 Answer:"""
 
-    response = groq_client.chat.completions.create(
-        model="meta-llama/llama-4-scout-17b-16e-instruct",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=1500,
-        temperature=0.4
+    response = client.models.generate_content(
+        model="gemini-3-flash-preview", 
+        contents=prompt
     )
-    return response.choices[0].message.content
+    return response.text
 
 # --- HARD SECURITY CHECK TO BYPASS HF PROXY ---
 @app.before_request

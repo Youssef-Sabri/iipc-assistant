@@ -37,7 +37,7 @@ GEMINI_MODEL = "gemini-3.1-flash-lite-preview"
 GROQ_FALLBACK_MODELS = ["meta-llama/llama-4-scout-17b-16e-instruct"]
 
 # Timeout Configuration (Seconds)
-GEMINI_TIMEOUT = 15
+GEMINI_TIMEOUT = 20
 EMBEDDING_TIMEOUT = 20
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -81,7 +81,10 @@ index.add(embeddings_matrix)
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "https://iipc-assistant.vercel.app"}})
 
-genai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+genai_client = genai.Client(
+    api_key=os.getenv("GEMINI_API_KEY"),
+    http_options={'timeout': GEMINI_TIMEOUT * 1000}  # milliseconds
+)
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -174,21 +177,15 @@ def generate_response(query, context_docs):
     """Generate LLM response with Gemini primary and Groq fallback."""
     prompt = _build_prompt(query, context_docs)
 
-    # 1. Try Gemini (configurable timeout fallback)
-    # We use a ThreadPoolExecutor to wrap the call in a hard timeout based on GEMINI_TIMEOUT.
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    # 1. Try Gemini (Native SDK timeout)
     try:
-        future = executor.submit(
-            genai_client.models.generate_content,
+        response = genai_client.models.generate_content(
             model=GEMINI_MODEL,
             contents=prompt,
         )
-        response = future.result(timeout=GEMINI_TIMEOUT)
-        executor.shutdown(wait=False)
         logger.info(f"[✅ LLM] Responded via {GEMINI_MODEL} (Gemini)")
         return response.text, GEMINI_MODEL
     except Exception as e:
-        executor.shutdown(wait=False, cancel_futures=True)
         logger.warning(f"[⚠️ LLM] Gemini failed ({type(e).__name__}) — falling back to Groq...")
 
     # 2. Try Groq fallback chain
@@ -257,4 +254,4 @@ def chat():
         return jsonify({"error": "An internal server error occurred."}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True, port=7860)
+    app.run(debug=True, port=7860)

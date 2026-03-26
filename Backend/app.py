@@ -174,8 +174,8 @@ def generate_response(query, context_docs):
     """Generate LLM response with Gemini primary and Groq fallback."""
     prompt = _build_prompt(query, context_docs)
 
-    # 1. Try Gemini (30s timeout fallback)
-    # We use a ThreadPoolExecutor to wrap the call in a hard 30s timeout.
+    # 1. Try Gemini (configurable timeout fallback)
+    # We use a ThreadPoolExecutor to wrap the call in a hard timeout based on GEMINI_TIMEOUT.
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     try:
         future = executor.submit(
@@ -183,7 +183,7 @@ def generate_response(query, context_docs):
             model=GEMINI_MODEL,
             contents=prompt,
         )
-        response = future.result(timeout=30)
+        response = future.result(timeout=GEMINI_TIMEOUT)
         executor.shutdown(wait=False)
         logger.info(f"[✅ LLM] Responded via {GEMINI_MODEL} (Gemini)")
         return response.text, GEMINI_MODEL

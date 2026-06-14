@@ -12,7 +12,6 @@ interface ChatMessageProps {
     isTyping?: boolean;
     fullContent?: string;
   };
-  onShowCitations?: (sources: any[]) => void;
 }
 
 const urlRegex = /((https?:\/\/|www\.)[^\s<>]+)/gi;

@@ -171,11 +171,15 @@ const Browse = () => {
       // small client debounce
       await new Promise((r) => setTimeout(r, debounce));
       const res = await query;
-      const { data, error: fetchError, count } = res as any;
+      const { data, error: fetchError, count } = res as {
+        data: IIPCData[] | null;
+        error: Error | null;
+        count: number | null;
+      };
       if (fetchError) throw fetchError;
 
       setMaterials((data as IIPCData[]) || []);
-      setTotalCount(typeof count === "number" ? count : (data ? (data as any).length : 0));
+      setTotalCount(typeof count === "number" ? count : (data ? data.length : 0));
       setError(null);
     } catch (err) {
       console.error("Fetch page error", err);
@@ -206,7 +210,7 @@ const Browse = () => {
         }
         if (!mounted) return;
         const yearsSet = new Set<number>();
-        (data || []).forEach((r: any) => {
+        (data || []).forEach((r: { date: string }) => {
           try {
             const d = new Date(r.date);
             if (!isNaN(d.getTime())) {
@@ -309,7 +313,7 @@ const Browse = () => {
                       {itemTypes.map((t) => (
                         <SelectItem key={t.type} value={t.type}>
                           <span className="capitalize">{t.type}</span>
-                          <span className="hidden md:inline"> {!isNaN(Number((t as any).count)) ? ` (${(t as any).count})` : ""}</span>
+                          <span className="hidden md:inline"> {!isNaN(Number(t.count)) ? ` (${t.count})` : ""}</span>
                         </SelectItem>
                       ))}
                     </SelectContent>

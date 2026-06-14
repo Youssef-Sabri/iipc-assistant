@@ -285,7 +285,6 @@ export default function Chat() {
                 <ChatMessage
                   key={message.id}
                   message={message}
-                  onShowCitations={() => {}} // no citations now
                 />
               ))}
 

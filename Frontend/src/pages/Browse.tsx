@@ -203,7 +203,7 @@ const Browse = () => {
         const { data, error } = await supabase
           .from("iipc_data")
           .select("date", { count: undefined })
-          .neq("date", null);
+          .not("date", "is", null);
         if (error) {
           console.warn("Years fetch failed:", error);
           return;

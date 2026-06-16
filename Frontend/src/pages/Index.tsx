@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import iipcLogo from "@/assets/iipc-logo.svg";
 import { useItemTypes, useIIPCData } from "@/hooks/use-iipc-data";
+import { formatMaterialDate } from "@/lib/date-utils";
 
 const Index = () => {
   const { itemTypes, loading: itemTypesLoading, error: itemTypesError } = useItemTypes();
@@ -234,7 +235,7 @@ const Index = () => {
                             {material.item_type || "document"}
                           </Badge>
                           <span className="text-sm text-muted-foreground font-medium">
-                            {material.date ? new Date(material.date).getFullYear() : "N/A"}
+                            {formatMaterialDate(material.date, 'year')}
                           </span>
                         </div>
 

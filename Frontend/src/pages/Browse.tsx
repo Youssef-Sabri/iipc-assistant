@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { IIPCData, supabase } from "@/lib/supabase";
+import { formatMaterialDate } from "@/lib/date-utils";
 import {
   Search,
   Calendar,
@@ -476,7 +477,7 @@ const Browse = () => {
                           <Badge className="capitalize border-primary/30 text-primary bg-gradient-to-r from-primary/10 to-research-green/10 px-2 py-0.5 text-xs font-semibold rounded-full">
                             {material.item_type || "document"}
                           </Badge>
-                          <span className="text-xs text-muted-foreground">{material.date ? new Date(material.date).getFullYear() : "N/A"}</span>
+                          <span className="text-xs text-muted-foreground">{formatMaterialDate(material.date, 'year')}</span>
                         </div>
 
                         <h3 className="font-semibold text-sm leading-snug mb-1 line-clamp-2">{material.title || "Untitled"}</h3>
@@ -495,7 +496,7 @@ const Browse = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <h3 className="font-medium text-sm line-clamp-1">{material.title || "Untitled"}</h3>
-                            <span className="text-[11px] text-muted-foreground">{material.date ? new Date(material.date).getFullYear() : "N/A"}</span>
+                            <span className="text-[11px] text-muted-foreground">{formatMaterialDate(material.date, 'year')}</span>
                           </div>
                           <div className="text-xs text-muted-foreground">{material.creator || "Unknown Author"}</div>
                         </div>
@@ -525,7 +526,7 @@ const Browse = () => {
                             {material.item_type || "document"}
                           </Badge>
                           <span className="text-sm text-muted-foreground font-medium">
-                            {material.date ? new Date(material.date).getFullYear() : "N/A"}
+                            {formatMaterialDate(material.date, 'year')}
                           </span>
                         </div>
 
@@ -540,7 +541,7 @@ const Browse = () => {
                           <div className="flex items-center gap-2 mb-3">
                             <Calendar className="w-4 h-4 text-muted-foreground" />
                             <span className="text-sm text-muted-foreground">
-                              {new Date(material.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                              {formatMaterialDate(material.date, 'full')}
                             </span>
                           </div>
                         )}
@@ -559,7 +560,7 @@ const Browse = () => {
                               {material.item_type || "document"}
                             </Badge>
                             <span className="text-sm text-muted-foreground font-medium">
-                              {material.date ? new Date(material.date).getFullYear() : "N/A"}
+                              {formatMaterialDate(material.date, 'year')}
                             </span>
                           </div>
 
@@ -574,7 +575,7 @@ const Browse = () => {
                               <div className="flex items-center gap-2">
                                 <Calendar className="w-4 h-4" />
                                 <span>
-                                  {new Date(material.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                                  {formatMaterialDate(material.date, 'short')}
                                 </span>
                               </div>
                             )}

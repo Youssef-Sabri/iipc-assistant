@@ -461,10 +461,10 @@ const Browse = () => {
                   <article
                     key={material.id + "-mobile"}
                     onClick={() => handleMaterialClick(material.ark_url)}
-                    className={`cursor-pointer transform transition-all duration-200 ${
+                    className={`cursor-pointer transform transition-all duration-300 active:scale-95 ${
                       viewMode === "grid"
-                        ? "p-3 rounded-lg bg-gradient-to-r from-background to-primary/5 hover:shadow-lg"
-                        : "p-2 flex items-center gap-3 bg-white/0 border border-primary/5 rounded-md hover:bg-primary/5"
+                        ? "p-4 rounded-xl bg-gradient-to-br from-background to-primary/5 hover:to-primary/10 border border-primary/10 hover:border-primary/20 shadow-sm hover:shadow-md"
+                        : "p-3 flex items-center gap-3 bg-gradient-to-r from-background to-primary/5 border border-primary/10 rounded-xl hover:bg-primary/10 shadow-sm"
                     }`}
                     role="button"
                     tabIndex={0}
@@ -474,17 +474,17 @@ const Browse = () => {
                       // mobile grid tile
                       <>
                         <div className="flex items-start justify-between mb-2">
-                          <Badge className="capitalize border-primary/30 text-primary bg-gradient-to-r from-primary/10 to-research-green/10 px-2 py-0.5 text-xs font-semibold rounded-full">
+                          <Badge className="capitalize border-primary/20 text-primary bg-gradient-to-r from-primary/10 to-research-green/10 px-2 py-0.5 text-[10px] font-semibold rounded-full">
                             {material.item_type || "document"}
                           </Badge>
-                          <span className="text-xs text-muted-foreground">{formatMaterialDate(material.date, 'year')}</span>
+                          <span className="text-[10px] font-medium text-muted-foreground">{formatMaterialDate(material.date, 'year')}</span>
                         </div>
 
-                        <h3 className="font-semibold text-sm leading-snug mb-1 line-clamp-2">{material.title || "Untitled"}</h3>
+                        <h3 className="font-bold text-foreground text-xs leading-snug mb-1 line-clamp-2 hover:text-primary transition-colors">{material.title || "Untitled"}</h3>
 
-                        <div className="text-xs text-muted-foreground mb-1 line-clamp-2">{material.creator || "Unknown Author"}</div>
+                        <div className="text-[11px] font-medium text-muted-foreground mb-1 line-clamp-1">by {material.creator || "Unknown Author"}</div>
 
-                        <p className="text-xs text-muted-foreground line-clamp-3">{material.description || ""}</p>
+                        <p className="text-[11px] text-muted-foreground/80 line-clamp-2 leading-relaxed">{material.description || ""}</p>
                       </>
                     ) : (
                       // mobile compact list row
@@ -515,7 +515,7 @@ const Browse = () => {
                 {materials.map((material, index) => (
                   <Card
                     key={material.id}
-                    className={`hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 border-0 bg-gradient-to-r from-background to-primary/5 hover:to-primary/10 ${viewMode === "list" ? "p-4 flex items-center gap-6" : "p-6"}`}
+                    className={`hover:shadow-2xl hover:border-primary/20 border border-primary/10 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 bg-gradient-to-br from-background to-primary/5 hover:to-primary/10 ${viewMode === "list" ? "p-5 flex items-center gap-6" : "p-6 flex flex-col h-full"}`}
                     onClick={() => handleMaterialClick(material.ark_url)}
                     style={{ animationDelay: `${500 + index * 50}ms` }}
                   >
@@ -530,11 +530,11 @@ const Browse = () => {
                           </span>
                         </div>
 
-                        <h3 className="font-bold text-foreground mb-3 line-clamp-2 text-lg leading-tight">{material.title || "Untitled"}</h3>
+                        <h3 className="font-bold text-foreground mb-3 line-clamp-2 text-lg leading-snug hover:text-primary transition-colors">{material.title || "Untitled"}</h3>
 
-                        <div className="flex items-center gap-2 mb-3">
-                          <User className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground font-medium">{material.creator || "Unknown Author"}</span>
+                        <div className="flex items-center gap-2 mb-2 text-muted-foreground/95">
+                          <User className="w-4 h-4 text-primary/70" />
+                          <span className="text-xs font-semibold uppercase tracking-wider">{material.creator || "Unknown Author"}</span>
                         </div>
 
                         {material.date && (
@@ -546,10 +546,13 @@ const Browse = () => {
                           </div>
                         )}
 
-                        <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed mb-4">{material.description || "No description available"}</p>
+                        <p className="text-sm text-muted-foreground/90 line-clamp-3 leading-relaxed mb-6">{material.description || "No description available"}</p>
 
-                        <div className="flex items-center justify-end mt-auto">
-                          <ExternalLink className="w-4 h-4 text-primary" />
+                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-primary/5">
+                          <span className="text-xs text-primary font-bold tracking-wide flex items-center gap-1 group">
+                            View Material
+                            <ExternalLink className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                          </span>
                         </div>
                       </>
                     ) : (

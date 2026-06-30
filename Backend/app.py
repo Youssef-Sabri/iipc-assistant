@@ -172,7 +172,7 @@ def mmr(query_emb, candidate_embs, lambda_param=0.5, top_k=10):
             
     return selected
 
-def retrieve_top_k(query, k_chunks=30, k_docs=3, k_final=10):
+def retrieve_top_k(query, k_chunks=60, k_docs=10, k_final=20):
     """Perform FAISS search and rank documents based on embedding similarity."""
     query_embedding = get_remote_embedding(query)
     if not query_embedding:

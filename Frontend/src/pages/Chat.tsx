@@ -3,9 +3,8 @@ import { ChatMessage } from "@/components/chat/ChatMessage";
 import { ChatInput } from "@/components/chat/ChatInput";
 
 import { 
-  MessageCircle, 
-  Sparkles, 
-  BookOpen
+  MessageCircle,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -186,23 +185,6 @@ export default function Chat() {
 
   return (
     <div className="h-[calc(100vh-3rem)] flex flex-col bg-background relative overflow-hidden">
-      {/* Mobile Header - More Compact */}
-      <div className="flex-shrink-0 border-b border-border bg-background z-10">
-        <div className="flex items-center justify-between p-3 sm:p-6">
-          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-primary to-research-green flex items-center justify-center shadow-lg flex-shrink-0">
-              <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="font-bold text-lg sm:text-2xl text-primary truncate">Ask a Question</h1>
-              <p className="text-muted-foreground text-xs sm:text-sm truncate">
-                Search IIPC materials
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Chat Container - Desktop: flex layout, Mobile: absolute positioning */}
       <div className="flex-1 flex flex-col relative min-h-0 sm:flex sm:flex-col">
         {/* Messages Area - Mobile: absolute positioning with bottom padding for input */}
@@ -219,6 +201,19 @@ export default function Chat() {
         >
           <div className="p-2 sm:p-4 pb-safe">
             <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+              {/* Page Header */}
+              <div className="flex items-center gap-3 px-1">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-primary to-research-green flex items-center justify-center shadow-lg flex-shrink-0">
+                  <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                </div>
+                <div>
+                  <h1 className="font-bold text-lg sm:text-2xl text-primary">Ask a Question</h1>
+                  <p className="text-muted-foreground text-xs sm:text-sm">
+                    Search IIPC materials
+                  </p>
+                </div>
+              </div>
+
               {/* Welcome Screen - Mobile Optimized */}
               {isFirstTimeUser && (
                 <div className="text-center py-6 sm:py-12 animate-in fade-in-0 slide-in-from-bottom-4">

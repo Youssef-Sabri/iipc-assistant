@@ -9,6 +9,7 @@ export default defineConfig(({ mode }) => ({
     host: "localhost",
     port: 8080,
   },
+  envDir: "../",
   plugins: [
     react(),
     mode === 'development' &&

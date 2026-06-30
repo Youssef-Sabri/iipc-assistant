@@ -1,12 +1,13 @@
 import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
+import tailwindcssTypography from "@tailwindcss/typography";
 
 export default {
 	darkMode: ["class"],
+	future: {
+		hoverOnlyWhenSupported: true,
+	},
 	content: [
-		"./pages/**/*.{ts,tsx}",
-		"./components/**/*.{ts,tsx}",
-		"./app/**/*.{ts,tsx}",
 		"./src/**/*.{ts,tsx}",
 	],
 	prefix: "",
@@ -100,19 +101,25 @@ export default {
 					DEFAULT: 'hsl(var(--success))',
 					foreground: 'hsl(var(--success-foreground))'
 				},
+				'iipc-red': {
+					DEFAULT: 'hsl(var(--iipc-red))',
+				},
 				'iipc-orange': {
-					DEFAULT: '#f06a50',
-					dark: '#ea372f',
+					DEFAULT: 'hsl(var(--iipc-red))',
+					dark: 'hsl(var(--primary-dark))',
 				},
 				'iipc-green': {
-					DEFAULT: '#acc676',
-					light: '#abc677',
+					DEFAULT: 'hsl(var(--iipc-green))',
+					light: 'hsl(var(--navy-light))',
+				},
+				'iipc-darkgreen': {
+					DEFAULT: 'hsl(var(--iipc-darkgreen))',
 				},
 				'iipc-teal': {
-					DEFAULT: '#3daab9',
+					DEFAULT: 'hsl(var(--iipc-teal))',
 				},
 				'iipc-gray': {
-					DEFAULT: '#cdcccb',
+					DEFAULT: 'hsl(var(--iipc-gray))',
 				},
 			},
 			boxShadow: {
@@ -150,5 +157,5 @@ export default {
 			}
 		}
 	},
-	plugins: [tailwindcssAnimate],
+	plugins: [tailwindcssAnimate, tailwindcssTypography],
 } satisfies Config;

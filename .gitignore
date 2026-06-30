@@ -31,10 +31,14 @@ dist-ssr
 .env.production.local
 
 __pycache__/
-clean-and-insert.js
-IIPCw_cleaned_text.csv
+
 
 # Frontend specific ignores
 Frontend/dist-ssr/
 Frontend/bun.lockb
 .eslintcache
+
+# Raw documents folder
+Documents/
+
+IIPC_data/

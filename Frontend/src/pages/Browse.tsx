@@ -262,7 +262,7 @@ const Browse = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-[calc(100vh-3rem)] bg-gradient-to-br from-background via-background to-primary/5 overflow-x-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8 animate-in fade-in-0 slide-in-from-top-4">
@@ -364,7 +364,7 @@ const Browse = () => {
               <div className="md:col-span-4 flex items-center justify-between md:justify-end gap-4">
                 <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
                 {hasActiveFilters && (
-                  <Button variant="outline" size="sm" onClick={clearFilters} className="text-muted-foreground hover:bg-red-50 hover:text-red-600 border-red-200">
+                  <Button variant="outline" size="sm" onClick={clearFilters} className="text-muted-foreground hover:bg-destructive/5 hover:text-destructive border-destructive/20">
                     <X className="w-4 h-4 mr-2" />
                     <span className="hidden md:inline">Clear</span>
                     <span className="md:hidden">Clear All</span>
@@ -427,8 +427,8 @@ const Browse = () => {
         ) : error ? (
           <div className="min-h-[40vh] flex items-center justify-center">
             <Card className="p-8 text-center max-w-md">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <X className="w-8 h-8 text-red-500" />
+              <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <X className="w-8 h-8 text-destructive" />
               </div>
               <h2 className="text-xl font-bold text-foreground mb-2">Error Loading Materials</h2>
               <p className="text-muted-foreground">{error}</p>
@@ -474,7 +474,7 @@ const Browse = () => {
                       // mobile grid tile
                       <>
                         <div className="flex items-start justify-between mb-2">
-                          <Badge className="capitalize border-primary/20 text-primary bg-gradient-to-r from-primary/10 to-research-green/10 px-2 py-0.5 text-[10px] font-semibold rounded-full">
+                          <Badge variant="outline" className="capitalize border-primary/20 text-primary bg-gradient-to-r from-primary/10 to-research-green/10 px-2 py-0.5 text-[10px] font-semibold rounded-full">
                             {material.item_type || "document"}
                           </Badge>
                           <span className="text-[10px] font-medium text-muted-foreground">{formatMaterialDate(material.date, 'year')}</span>

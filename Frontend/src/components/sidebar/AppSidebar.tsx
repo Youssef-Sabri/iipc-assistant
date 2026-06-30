@@ -37,11 +37,11 @@ export function AppSidebar() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <Sidebar className="border-r border-border/50 shadow-2xl backdrop-blur-xl bg-white/95 dark:bg-gray-900/95 supports-[backdrop-filter]:bg-white/80 supports-[backdrop-filter]:dark:bg-gray-900/80">
+    <Sidebar className="border-r border-border/50 shadow-2xl backdrop-blur-xl bg-sidebar/95 supports-[backdrop-filter]:bg-sidebar/80">
       {/* Mobile overlay backdrop for better visibility */}
-      <div className="absolute inset-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl lg:hidden"></div>
+      <div className="absolute inset-0 bg-sidebar/90 backdrop-blur-xl lg:hidden"></div>
       
-      <SidebarHeader className="relative z-10 p-6 border-b border-border/30 bg-gradient-to-r from-white/95 to-primary/5 dark:from-gray-900/95 dark:to-primary/10 backdrop-blur-sm">
+      <SidebarHeader className="relative z-10 p-6 border-b border-border/30 bg-gradient-to-r from-sidebar/95 to-primary/5 dark:to-primary/10 backdrop-blur-sm">
         <div className="flex items-center gap-4">
           <div className="relative">
             <img 
@@ -64,7 +64,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="relative z-10 flex-1 overflow-y-auto bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm">
+      <SidebarContent className="relative z-10 flex-1 overflow-y-auto bg-sidebar/90 backdrop-blur-sm">
         {/* Main Navigation */}
         <SidebarGroup className="px-3 py-6">
           <SidebarGroupLabel className="font-semibold text-sm mb-4 px-3 text-muted-foreground uppercase tracking-wide">
@@ -87,8 +87,8 @@ export function AppSidebar() {
                         className={`
                           flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 font-medium text-base backdrop-blur-sm
                           ${active 
-                            ? 'bg-gradient-to-r from-primary to-research-green text-white shadow-lg transform scale-105 border border-primary/20' 
-                            : 'text-foreground bg-white/70 dark:bg-gray-800/70 hover:bg-gradient-to-r hover:from-primary/10 hover:to-research-green/10 hover:text-primary hover:scale-102 hover:shadow-md border border-transparent hover:border-primary/20'
+                            ? 'bg-gradient-to-r from-primary to-research-green text-white shadow-lg transform md:scale-105 border border-primary/20' 
+                            : 'text-foreground bg-sidebar-bg/70 hover:bg-gradient-to-r hover:from-primary/10 hover:to-research-green/10 hover:text-primary hover:scale-102 hover:shadow-md border border-transparent hover:border-primary/20'
                           }
                         `}
                       >
@@ -117,7 +117,7 @@ export function AppSidebar() {
         {/* Quick Stats Section (if not collapsed) */}
         {!collapsed && (
           <SidebarGroup className="px-3 pb-6">
-            <div className="mx-3 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-research-green/10 border border-primary/20 backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 shadow-lg">
+            <div className="mx-3 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-research-green/10 border border-primary/20 backdrop-blur-sm bg-sidebar-bg/80 shadow-lg">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary/20 to-research-green/20 flex items-center justify-center backdrop-blur-sm">
                   <MessageCircle className="w-4 h-4 text-primary" />
@@ -134,7 +134,7 @@ export function AppSidebar() {
 
       <SidebarFooter className="relative z-10 p-4 border-t border-border/30 bg-gradient-to-r from-white/95 to-primary/5 dark:from-gray-900/95 dark:to-primary/10 backdrop-blur-sm">
         {!collapsed ? (
-          <div className="px-3 py-2 rounded-lg bg-gradient-to-r from-primary/10 to-research-green/10 backdrop-blur-sm border border-primary/10 bg-white/80 dark:bg-gray-800/80">
+          <div className="px-3 py-2 rounded-lg bg-gradient-to-r from-primary/10 to-research-green/10 backdrop-blur-sm border border-primary/10 bg-sidebar-bg/80">
             <div className="text-xs text-muted-foreground font-medium text-center">
               IIPC Assistant v1.0
             </div>

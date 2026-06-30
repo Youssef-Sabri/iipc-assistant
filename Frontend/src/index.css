@@ -7,8 +7,8 @@
 @layer base {
   :root {
     /* Base Background & Text */
-    --background: #fafafa;
-    --foreground: #1a1a1a;
+    --background: 0 0% 98%; /* #fafafa */
+    --foreground: 0 0% 10%; /* #1a1a1a */
 
     /* Card & UI Elements */
     --card: 0 0% 100%;
@@ -19,19 +19,26 @@
 
     /* IIPC Brand Colors - Based on Logo */
     --primary: 16 83% 52%; /* #f06a50 - Main IIPC orange */
-    --primary-foreground: #ffffff;
+    --primary-foreground: 0 0% 100%; /* #ffffff */
     --primary-dark: 16 83% 42%; /* Darker orange */
 
     /* IIPC Green - From Logo */
     --navy: 85 35% 55%; /* #acc676 - Light green from logo */
     --navy-light: 85 35% 65%; /* Lighter green */
-    --navy-foreground: #1a1a1a;
+    --navy-foreground: 0 0% 10%; /* #1a1a1a */
 
-               /* IIPC Teal - From Logo */
-           --research-green: 189 50% 48%; /* #3daab9 - Teal from logo */
-           --research-green-light: 189 50% 88%;
-           --research-green-dark: 189 50% 38%; /* Darker teal */
-           --research-green-foreground: #ffffff;
+    /* IIPC Teal - From Logo */
+    --research-green: 189 50% 48%; /* #3daab9 - Teal from logo */
+    --research-green-light: 189 50% 88%;
+    --research-green-dark: 189 50% 38%; /* Darker teal */
+    --research-green-foreground: 0 0% 100%; /* #ffffff */
+
+    /* Brand variables mapped to design system colors */
+    --iipc-red: 16 83% 52%; /* Same as primary orange/red */
+    --iipc-green: 85 35% 55%; /* Same as navy/accent green */
+    --iipc-darkgreen: 85 35% 30%; /* Dark green for badge text */
+    --iipc-teal: 189 50% 48%; /* Same as research-green teal */
+    --iipc-gray: 0 0% 80%; /* Consolidated gray #cdcccb */
 
     /* Neutral Grays */
     --secondary: 0 0% 96%;
@@ -42,7 +49,7 @@
 
     /* IIPC Green Accent */
     --accent: 85 35% 55%; /* #acc676 - Green from logo */
-    --accent-foreground: #1a1a1a;
+    --accent-foreground: 0 0% 10%; /* #1a1a1a */
 
     /* Slate Tones */
     --slate: 0 0% 45%;
@@ -51,13 +58,13 @@
 
     /* System Colors */
     --destructive: 0 84% 60%;
-    --destructive-foreground: #ffffff;
+    --destructive-foreground: 0 0% 100%; /* #ffffff */
 
     --warning: 38 92% 50%;
-    --warning-foreground: #ffffff;
+    --warning-foreground: 0 0% 100%; /* #ffffff */
 
     --success: 142 71% 45%;
-    --success-foreground: #ffffff;
+    --success-foreground: 0 0% 100%; /* #ffffff */
 
     /* Borders & Inputs */
     --border: 0 0% 90%;
@@ -75,12 +82,12 @@
     --chat-system: 189 50% 95%; /* Light IIPC teal for system */
 
     /* Sidebar - Professional Light Theme */
-    --sidebar-background: #ffffff;
-    --sidebar-foreground: #1a1a1a;
+    --sidebar-background: 0 0% 100%; /* #ffffff */
+    --sidebar-foreground: 0 0% 10%; /* #1a1a1a */
     --sidebar-primary: 16 83% 52%; /* IIPC orange */
-    --sidebar-primary-foreground: #ffffff;
+    --sidebar-primary-foreground: 0 0% 100%; /* #ffffff */
     --sidebar-accent: 85 35% 95%; /* Light IIPC green */
-    --sidebar-accent-foreground: #1a1a1a;
+    --sidebar-accent-foreground: 0 0% 10%; /* #1a1a1a */
     --sidebar-border: 0 0% 90%;
     --sidebar-ring: 16 83% 52%; /* IIPC orange */
     --sidebar-bg: 0 0% 100%;
@@ -91,90 +98,7 @@
     font-family: 'Inter', 'Lato', 'Open Sans', 'system-ui', 'sans-serif';
   }
 
-  .dark {
-    /* Dark Mode - IIPC Theme */
-    --background: #0a0a0a;
-    --foreground: #fafafa;
-    
-    /* Card & UI Elements */
-    --card: 0 0% 15%;
-    --card-foreground: 0 0% 90%;
 
-    --popover: 0 0% 15%;
-    --popover-foreground: 0 0% 90%;
-
-    /* IIPC Brand Colors - Dark Mode */
-    --primary: 16 83% 62%; /* Lighter IIPC orange for dark mode */
-    --primary-foreground: #0a0a0a;
-    --primary-dark: 16 83% 52%;
-
-    /* Dark IIPC Green */
-    --navy: 85 35% 35%; /* Darker green */
-    --navy-light: 85 35% 45%;
-    --navy-foreground: #fafafa;
-
-    /* Dark IIPC Teal */
-    --research-green: 189 50% 38%; /* Darker teal */
-    --research-green-light: 189 30% 20%;
-    --research-green-dark: 189 50% 28%; /* Even darker teal for dark mode */
-    --research-green-foreground: #fafafa;
-
-    /* Neutral Grays */
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 70%;
-
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 70%;
-
-    --accent: 85 35% 65%; /* Lighter IIPC green for dark mode */
-    --accent-foreground: #0a0a0a;
-
-    /* Dark Slate */
-    --slate: 0 0% 60%;
-    --slate-light: 0 0% 20%;
-    --slate-dark: 0 0% 85%;
-
-    /* System Colors */
-    --destructive: 0 84% 65%;
-    --destructive-foreground: #0a0a0a;
-
-    --warning: 38 92% 60%;
-    --warning-foreground: #0a0a0a;
-
-    --success: 142 71% 55%;
-    --success-foreground: #0a0a0a;
-
-    /* Borders & Inputs */
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 16 83% 62%; /* Match primary orange */
-
-    /* Shadows & Effects */
-    --shadow-soft: 0 0% 0% / 0.2;
-    --shadow-medium: 0 0% 0% / 0.3;
-    --shadow-strong: 0 0% 0% / 0.4;
-
-    /* Dark Chat Colors - Aligned with IIPC Theme */
-    --chat-user: 16 83% 62%; /* IIPC orange for user messages */
-    --chat-assistant: 85 35% 15%; /* Dark IIPC green for assistant */
-    --chat-system: 189 50% 15%; /* Dark IIPC teal for system */
-
-    /* Dark Sidebar - Professional Dark Theme */
-    --sidebar-background: #0a0a0a;
-    --sidebar-foreground: #fafafa;
-    --sidebar-primary: 16 83% 62%; /* IIPC orange */
-    --sidebar-primary-foreground: #0a0a0a;
-    --sidebar-accent: 85 35% 15%; /* Dark IIPC green */
-    --sidebar-accent-foreground: #fafafa;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 16 83% 62%; /* IIPC orange */
-    --sidebar-bg: 0 0% 10%;
-    --sidebar-hover: 85 35% 15%; /* Dark IIPC green */
-    --sidebar-active: 16 83% 62%; /* IIPC orange */
-
-    --radius: 0.75rem;
-    font-family: 'Inter', 'Lato', 'Open Sans', 'system-ui', 'sans-serif';
-  }
 }
 
 @layer base {

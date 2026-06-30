@@ -122,9 +122,15 @@ export default function Chat() {
 
     try {
       const apiBaseUrl = import.meta.env.VITE_CHAT_API_URL || "";
+      const hfToken = import.meta.env.VITE_HF_TOKEN;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (hfToken) {
+        headers["Authorization"] = `Bearer ${hfToken}`;
+      }
+
       const response = await fetch(`${apiBaseUrl}/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ query: content }),
       });
 
@@ -190,7 +196,7 @@ export default function Chat() {
   const isFirstTimeUser = messages.length === 1;
 
   return (
-    <div className="h-screen flex flex-col bg-background relative overflow-hidden">
+    <div className="h-[calc(100vh-3rem)] flex flex-col bg-background relative overflow-hidden">
       {/* Mobile Header - More Compact */}
       <div className="flex-shrink-0 border-b border-border bg-background z-10">
         <div className="flex items-center justify-between p-3 sm:p-6">

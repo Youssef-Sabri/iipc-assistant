@@ -27,16 +27,12 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function HomePage() {
-  return <Index />;
-}
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<Index />} />
           <Route path="/chat" element={<MainLayout><Chat /></MainLayout>} />
           <Route path="/browse" element={<MainLayout><Browse /></MainLayout>} />
           <Route path="/about" element={<MainLayout><About /></MainLayout>} />

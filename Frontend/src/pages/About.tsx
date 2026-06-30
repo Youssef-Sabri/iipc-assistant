@@ -71,7 +71,7 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-[calc(100vh-3rem)] bg-gradient-to-br from-background via-background to-primary/5 overflow-x-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
         
         {/* Hero Section */}

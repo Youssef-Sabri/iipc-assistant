@@ -18,20 +18,13 @@ interface Message {
   fullContent?: string;
 }
 
-const initialMessages: Message[] = [
-  {
-    id: "welcome",
-    content: "Welcome to the IIPC Assistant! I can help you explore conference materials, research papers, and presentations from the International Internet Preservation Consortium. Ask me about web archiving practices, quality assurance methods, technical standards, or any specific topics you're researching.",
-    role: "system",
-    timestamp: new Date()
-  }
-];
+const initialMessages: Message[] = [];
 
 const suggestionQueries = [
   "What are the latest best practices for web crawling?",
-  "How do IIPC members handle quality assurance?", 
-  "What legal issues affect web archiving?",
-  "Creator of WARCrefs for Deduplicating Web Archives?"
+  "How do IIPC members approach quality assurance in web archiving?", 
+  "What legal and policy issues affect web archiving?",
+  "Who developed WARCrefs for deduplicating web archives?"
 ];
 
 export default function Chat() {
@@ -176,15 +169,11 @@ export default function Chat() {
         clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = null;
       }
-      setMessages(prev => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          content: "Sorry, there was an error getting the response. Please try again.",
-          role: "assistant",
-          timestamp: new Date()
-        }
-      ]);
+      setMessages(prev => prev.map(msg =>
+        msg.id === newMessageId
+          ? { ...msg, content: "Sorry, there was an error getting the response. Please try again.", isTyping: false, fullContent: undefined }
+          : msg
+      ));
       setIsLoading(false);
     }
   };
@@ -193,7 +182,7 @@ export default function Chat() {
     handleSendMessage(suggestion);
   };
 
-  const isFirstTimeUser = messages.length === 1;
+  const isFirstTimeUser = messages.length === 0;
 
   return (
     <div className="h-[calc(100vh-3rem)] flex flex-col bg-background relative overflow-hidden">
@@ -243,43 +232,20 @@ export default function Chat() {
                     I can help you explore conference materials, research papers, and presentations from the International Internet Preservation Consortium.
                   </p>
                   
-                  {/* Desktop Suggestions - Always Visible */}
-                  <div className="hidden sm:block space-y-3 max-w-3xl mx-auto px-4">
-                    <p className="text-lg text-muted-foreground mb-4 font-semibold">
-                      Try asking about:
-                    </p>
-                    <div className="grid gap-3">
-                      {suggestionQueries.map((suggestion, index) => (
-                        <Button
-                          key={index}
-                          variant="outline"
-                          className="text-left h-auto p-4 justify-start hover:bg-gradient-to-r hover:from-primary/10 hover:to-research-green/10 hover:border-primary/50 transition-all duration-300 transform hover:scale-105 border-2 border-primary/30 rounded-xl bg-gradient-to-r from-background to-primary/5"
-                          onClick={() => handleSuggestionClick(suggestion)}
-                        >
-                          <BookOpen className="w-5 h-5 mr-3 text-primary flex-shrink-0" />
-                          <span className="text-base text-primary font-medium">{suggestion}</span>
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Mobile Suggestions - Always Visible - Compact */}
-                  <div className="sm:hidden space-y-1.5 max-w-sm mx-auto px-4">
-                    <p className="text-sm text-muted-foreground mb-2 font-medium text-center">
+                  {/* Example questions as compact chips */}
+                  <div className="max-w-2xl mx-auto px-4">
+                    <p className="text-sm text-muted-foreground mb-3 text-center">
                       Try asking:
                     </p>
-                    <div className="grid gap-1.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-xl mx-auto">
                       {suggestionQueries.map((suggestion, index) => (
-                        <Button
+                        <button
                           key={index}
-                          variant="outline"
-                          size="sm"
-                          className="text-left h-auto p-2 justify-start hover:bg-gradient-to-r hover:from-primary/10 hover:to-research-green/10 hover:border-primary/50 transition-all duration-200 border border-primary/20 rounded-md bg-gradient-to-r from-background to-primary/5"
                           onClick={() => handleSuggestionClick(suggestion)}
+                          className="text-xs sm:text-sm px-3 py-2 rounded-full border border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 text-primary transition-all duration-200 cursor-pointer text-center truncate"
                         >
-                          <BookOpen className="w-3 h-3 mr-1.5 text-primary flex-shrink-0" />
-                          <span className="text-xs text-primary font-medium text-left line-clamp-2">{suggestion}</span>
-                        </Button>
+                          {suggestion}
+                        </button>
                       ))}
                     </div>
                   </div>

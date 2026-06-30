@@ -6,7 +6,7 @@
 [![React](https://img.shields.io/badge/React-18+-61dafb.svg)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178c6.svg)](https://www.typescriptlang.org/)
 
-AI-powered research platform for exploring conference materials, presentations, and publications from the International Internet Preservation Consortium. Combines semantic search with generative AI to provide contextual answers from the IIPC archive.
+An AI-powered research assistant for exploring IIPC Web Archiving conference materials. Built with Retrieval-Augmented Generation (RAG), FAISS semantic search, and Gemini, this chatbot understands archival documents and metadata to deliver accurate, contextual answers. Designed for researchers, archivists, and digital preservationists.
 
 ## Features
 

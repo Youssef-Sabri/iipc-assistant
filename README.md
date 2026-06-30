@@ -10,9 +10,11 @@ An AI-powered research assistant for exploring IIPC Web Archiving conference mat
 
 ## Features
 
-- **Semantic Search & Chat** — Natural language queries over IIPC conference materials with AI-generated, source-grounded responses
-- **Comprehensive Archive Access** — Multi-format support (presentations, posters, transcripts), advanced filtering by year/type/author, and direct ARK links to originals
-- **Modern User Experience** — Responsive design across desktop, tablet, and mobile with a polished interface
+- **Semantic Search & Chat** — Natural language queries over IIPC conference materials with AI-generated, source-grounded responses.
+- **Rich Metadata Context** — Answers are enriched with metadata details such as titles, authors, dates, and institutional affiliations.
+- **Diverse Retrieval** — Combines vector search with diversity filters to gather context across multiple presentations.
+- **Comprehensive Archive Access** — Filter and browse posters, presentations, and transcripts with direct links to original documents.
+- **Modern User Experience** — Responsive interface optimized for desktop, tablet, and mobile.
 
 ## Architecture
 
@@ -81,7 +83,27 @@ An AI-powered research assistant for exploring IIPC Web Archiving conference mat
    pip install -r requirements.txt
    ```
 
-   Create a `.env` file at the project root with the required API keys (see `.env` for reference).
+   Create a `.env` file at the project root with the following variables:
+
+   ```env
+   # API Keys
+   GEMINI_API_KEY=
+   GROQ_API_KEY=
+
+   # Hugging Face Settings
+   VITE_EMBEDDING_API_URL=
+   HF_USERNAME=
+   HF_DATASET_NAME=
+   HF_TOKEN=
+   VITE_HF_TOKEN=
+
+   # Supabase Credentials
+   VITE_SUPABASE_URL=
+   VITE_SUPABASE_PUBLISHABLE_KEY=
+
+   # Local API configurations
+   VITE_CHAT_API_URL=
+   ```
 
 3. **Frontend setup**
    ```bash
@@ -107,23 +129,29 @@ npm run dev
 ```
 The UI runs on `http://localhost:8080`.
 
-### Docker Deployment
+### Deployment on Hugging Face Spaces
 
-**Backend:**
-```bash
-cd Backend
-docker build -t iipc-backend .
-docker run -p 7860:7860 --env-file .env iipc-backend
-```
+Both the **Chat Backend** and the **Embedding API** are designed to be deployed as Docker-based Hugging Face Spaces.
 
-**Embedding API (Hugging Face Space):**
-```bash
-cd Backend/huggingface_space
-docker build -t iipc-embedding-api .
-docker run -p 7860:7860 iipc-embedding-api
-```
+#### 1. Chat Backend (Flask + RAG Pipeline)
+This container hosts the RAG queries, manages Gemini/Groq completions, and holds the FAISS similarity index.
+* **Hugging Face Setup**: Create a new Space using the **Docker** SDK (blank template).
+* **Auto-Downloading Embeddings**: On boot, the container automatically downloads the `embeddings_v3.pkl` file directly from your private/public Hugging Face dataset.
+* **Required Space Secrets**:
+  Add the following variables in your Space's **Settings > Variables and secrets** tab:
+  * `HF_TOKEN` — Hugging Face user access token (with `read` permissions to download the dataset)
+  * `HF_USERNAME` — Hugging Face username
+  * `HF_DATASET_NAME` — Hugging Face dataset name
+  * `GEMINI_API_KEY` — Google Gemini API key
+  * `GROQ_API_KEY` — Groq API key
+  * `VITE_EMBEDDING_API_URL` — Deployed Hugging Face Embedding API endpoint URL
 
-## API Reference
+#### 2. Embedding API (FastAPI + BGE-M3 model)
+This container hosts local PyTorch inference for the `BAAI/bge-m3` model to compute query vectors locally without rate limits.
+* **Hugging Face Setup**: Create a new Space using the **Docker** SDK, upload files from [Backend/huggingface_space](file:///c:/Users/youss/Desktop/Projects/IIPC-Assistant/Backend/huggingface_space), and expose port `7860`.
+* The container creates a model cache directory at `/app/hf_cache` to store the tokenizer and model weights safely.
+
+---
 
 ### `POST /chat`
 

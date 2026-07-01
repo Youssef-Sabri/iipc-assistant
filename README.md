@@ -91,7 +91,7 @@ An AI-powered research assistant for exploring IIPC Web Archiving conference mat
    GROQ_API_KEY=
 
     # Hugging Face Settings
-    VITE_EMBEDDING_API_URL=
+    EMBEDDING_API_URL=
     HF_USERNAME=
     HF_DATASET_NAME=
     HF_TOKEN=
@@ -101,7 +101,7 @@ An AI-powered research assistant for exploring IIPC Web Archiving conference mat
    VITE_SUPABASE_PUBLISHABLE_KEY=
 
    # Local API configurations
-   VITE_CHAT_API_URL=
+   CHAT_API_URL=
    ```
 
 3. **Frontend setup**
@@ -143,7 +143,7 @@ This container hosts the RAG queries, manages Gemini/Groq completions, and holds
   * `HF_DATASET_NAME` — Hugging Face dataset name
   * `GEMINI_API_KEY` — Google Gemini API key
   * `GROQ_API_KEY` — Groq API key
-  * `VITE_EMBEDDING_API_URL` — Deployed Hugging Face Embedding API endpoint URL
+  * `EMBEDDING_API_URL` — Deployed Hugging Face Embedding API endpoint URL
 
 #### 2. Embedding API (FastAPI + BGE-M3 model)
 This container hosts local PyTorch inference for the `BAAI/bge-m3` model to compute query vectors locally without rate limits.

@@ -3,7 +3,6 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import pickle
 import logging
 import traceback
-import concurrent.futures
 from collections import defaultdict
 
 import numpy as np

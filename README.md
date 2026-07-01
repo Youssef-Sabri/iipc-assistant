@@ -90,12 +90,11 @@ An AI-powered research assistant for exploring IIPC Web Archiving conference mat
    GEMINI_API_KEY=
    GROQ_API_KEY=
 
-   # Hugging Face Settings
-   VITE_EMBEDDING_API_URL=
-   HF_USERNAME=
-   HF_DATASET_NAME=
-   HF_TOKEN=
-   VITE_HF_TOKEN=
+    # Hugging Face Settings
+    VITE_EMBEDDING_API_URL=
+    HF_USERNAME=
+    HF_DATASET_NAME=
+    HF_TOKEN=
 
    # Supabase Credentials
    VITE_SUPABASE_URL=

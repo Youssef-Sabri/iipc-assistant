@@ -113,16 +113,9 @@ export default function Chat() {
     setMessages(prev => [...prev, placeholderAssistantMessage]);
 
     try {
-      const apiBaseUrl = import.meta.env.VITE_CHAT_API_URL || "";
-      const hfToken = import.meta.env.VITE_HF_TOKEN;
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (hfToken) {
-        headers["Authorization"] = `Bearer ${hfToken}`;
-      }
-
-      const response = await fetch(`${apiBaseUrl}/chat`, {
+      const response = await fetch("/api/chat", {
         method: "POST",
-        headers,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: content }),
       });
 

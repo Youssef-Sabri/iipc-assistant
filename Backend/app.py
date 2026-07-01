@@ -39,7 +39,7 @@ if os.path.exists(LOCAL_PKL_PATH):
 else:
     PKL_PATH = DEPLOY_PKL_PATH
 
-REMOTE_EMBEDDING_API = os.getenv("VITE_EMBEDDING_API_URL")
+REMOTE_EMBEDDING_API = os.getenv("EMBEDDING_API_URL")
 
 # Model Configuration
 GEMINI_MODEL = "gemini-3.1-flash-lite"

@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Missing query" });
   }
 
-  const backendUrl = process.env.VITE_CHAT_API_URL;
+  const backendUrl = process.env.CHAT_API_URL;
   const hfToken = process.env.HF_TOKEN;
 
   if (!backendUrl) {

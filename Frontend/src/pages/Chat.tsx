@@ -26,6 +26,13 @@ const suggestionQueries = [
   "Who developed WARCrefs for deduplicating web archives?"
 ];
 
+async function generateSignature(timestamp: string): Promise<string> {
+  const msgBuffer = new TextEncoder().encode(timestamp + "-iipc-dynamic-salt-2026");
+  const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
@@ -113,9 +120,16 @@ export default function Chat() {
     setMessages(prev => [...prev, placeholderAssistantMessage]);
 
     try {
+      const timestamp = Date.now().toString();
+      const signature = await generateSignature(timestamp);
+
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-app-timestamp": timestamp,
+          "x-app-signature": signature
+        },
         body: JSON.stringify({ query: content }),
       });
 

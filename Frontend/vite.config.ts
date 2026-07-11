@@ -7,7 +7,7 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => {
   // Load env file from the parent directory (since envDir is "../")
   const env = loadEnv(mode, path.resolve(__dirname, "../"), "");
-  const backendUrl = env.CHAT_API_URL || "http://localhost:7860";
+  const backendUrl = env.CHAT_API_URL;
 
   return {
     server: {

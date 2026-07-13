@@ -258,7 +258,9 @@ export default function BrowsePage() {
                       <SelectItem value="all">All Types</SelectItem>
                       {itemTypes.map((t) => (
                         <SelectItem key={t.type} value={t.type}>
-                          <span className="capitalize">{t.type}</span>
+                          <span className="capitalize">
+                            {t.type.replace("image_presentation", "presentation").replace("_", " ")}
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -337,7 +339,7 @@ export default function BrowsePage() {
                 )}
                 {selectedType !== "all" && (
                   <Badge variant="secondary" className="bg-primary/10 text-primary capitalize">
-                    Type: {selectedType}
+                    Type: {selectedType.replace("image_presentation", "presentation").replace("_", " ")}
                   </Badge>
                 )}
                 {selectedYear !== "all" && (
@@ -420,7 +422,7 @@ export default function BrowsePage() {
                       <>
                         <div className="flex items-start justify-between mb-2">
                           <Badge variant="outline" className="capitalize border-primary/20 text-primary bg-gradient-to-r from-primary/10 to-research-green/10 px-2 py-0.5 text-[10px] font-semibold rounded-full">
-                            {material.item_type || "document"}
+                            {material.item_type?.replace("image_presentation", "presentation").replace("_", " ") || "document"}
                           </Badge>
                           <span className="text-[10px] font-medium text-muted-foreground">{formatMaterialDate(material.date, 'year')}</span>
                         </div>
@@ -474,7 +476,7 @@ export default function BrowsePage() {
                       <>
                         <div className="flex items-start justify-between mb-4">
                           <Badge variant="outline" className="capitalize border-primary/30 text-primary bg-gradient-to-r from-primary/10 to-research-green/10 px-3 py-1 font-semibold">
-                            {material.item_type || "document"}
+                            {material.item_type?.replace("image_presentation", "presentation").replace("_", " ") || "document"}
                           </Badge>
                           <span className="text-sm text-muted-foreground font-medium">
                             {formatMaterialDate(material.date, 'year')}
@@ -511,7 +513,7 @@ export default function BrowsePage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between mb-2">
                             <Badge variant="outline" className="capitalize border-primary/30 text-primary bg-gradient-to-r from-primary/10 to-research-green/10 font-semibold">
-                              {material.item_type || "document"}
+                              {material.item_type?.replace("image_presentation", "presentation").replace("_", " ") || "document"}
                             </Badge>
                             <span className="text-sm text-muted-foreground font-medium">
                               {formatMaterialDate(material.date, 'year')}

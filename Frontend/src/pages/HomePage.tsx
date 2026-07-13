@@ -118,7 +118,9 @@ export default function HomePage() {
                     style={{ animationDelay: `${1000 + index * 100}ms` }}
                   >
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-bold text-foreground capitalize text-lg">{itemType.type}</h3>
+                      <h3 className="font-bold text-foreground capitalize text-lg">
+                        {itemType.type.replace("image_presentation", "presentation").replace("_", " ")}
+                      </h3>
                       <div className="w-8 h-8 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center">
                         <div className="w-2 h-2 bg-primary rounded-full"></div>
                       </div>

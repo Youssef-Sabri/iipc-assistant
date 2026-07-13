@@ -207,7 +207,7 @@ def retrieve_top_k(query, k_chunks=60, k_docs=10, k_final=20):
             "score": float(dist),
             "subject": subjects[idx] if idx < len(subjects) else "",
             "description": descriptions[idx] if idx < len(descriptions) else "",
-            "item_type": item_types[idx] if idx < len(item_types) else "",
+            "item_type": "presentation" if (idx < len(item_types) and item_types[idx] == "image_presentation") else (item_types[idx] if idx < len(item_types) else ""),
             "source_url": source_urls[idx] if idx < len(source_urls) else ""
         })
 

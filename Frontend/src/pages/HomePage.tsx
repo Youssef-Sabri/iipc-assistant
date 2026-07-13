@@ -10,10 +10,18 @@ import {
   ExternalLink,
 } from "lucide-react";
 import iipcLogo from "@/assets/iipc-logo.svg";
-import { useItemTypes } from "@/hooks/use-iipc-data";
+import { useItemTypes, useIIPCData } from "@/hooks/use-iipc-data";
+import { RecentMaterialsCarousel } from "@/components/home/RecentMaterialsCarousel";
 
 export default function HomePage() {
   const { itemTypes, loading: itemTypesLoading, error: itemTypesError } = useItemTypes();
+  const { data: materials, loading: materialsLoading, error: materialsError } = useIIPCData();
+
+  const handleMaterialClick = (arkUrl: string) => {
+    if (arkUrl) {
+      window.open(arkUrl, "_blank", "noopener,noreferrer");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 overflow-x-hidden">
@@ -73,64 +81,114 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Available Item Types */}
-        <div className="mb-20 px-4 sm:px-0 max-w-5xl mx-auto">
-          <div className="animate-in fade-in-0 slide-in-from-bottom-4" style={{ animationDelay: "800ms" }}>
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Available Item Types</h2>
-              <Button
-                variant="ghost"
-                asChild
-                className="hover:bg-gradient-to-r hover:from-primary/10 hover:to-research-green/10 transition-colors text-primary"
-              >
-                <Link to="/browse" className="flex items-center font-semibold">
-                  View All <ArrowRight className="w-4 h-4 ml-2" />
-                </Link>
-              </Button>
+        {/* Main Content Grid */}
+        <div className="mb-20 px-4 sm:px-0 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            
+            {/* Left Column: Available Item Types */}
+            <div className="animate-in fade-in-0 slide-in-from-left-4" style={{ animationDelay: "800ms" }}>
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Available Item Types</h2>
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="hover:bg-gradient-to-r hover:from-primary/10 hover:to-research-green/10 transition-colors text-primary"
+                >
+                  <Link to="/browse" className="flex items-center font-semibold">
+                    View All <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {itemTypesLoading ? (
+                  // Loading skeleton
+                  Array.from({ length: 6 }).map((_, index) => (
+                    <Card
+                      key={index}
+                      className="p-6 border-0 bg-gradient-to-r from-background to-muted/20 rounded-xl"
+                    >
+                      <div className="h-6 bg-muted animate-pulse rounded mb-3" />
+                      <div className="h-8 bg-muted animate-pulse rounded" />
+                    </Card>
+                  ))
+                ) : itemTypesError ? (
+                  <div className="col-span-full text-center text-muted-foreground p-8">
+                    <div className="text-lg font-medium">Error loading item types</div>
+                    <div className="text-sm text-muted-foreground mt-2">{itemTypesError}</div>
+                  </div>
+                ) : itemTypes.length === 0 ? (
+                  <div className="col-span-full text-center text-muted-foreground p-8">
+                    <div className="text-lg font-medium">No item types available</div>
+                  </div>
+                ) : (
+                  itemTypes.slice(0, 6).map((itemType, index) => (
+                    <Card
+                      key={itemType.type}
+                      className="p-6 hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer border-0 bg-gradient-to-r from-background to-primary/5 rounded-xl"
+                      style={{ animationDelay: `${1000 + index * 100}ms` }}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-bold text-foreground capitalize text-lg">
+                          {itemType.type.replace("image_presentation", "presentation").replace("_", " ")}
+                        </h3>
+                        <div className="w-8 h-8 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center">
+                          <div className="w-2 h-2 bg-primary rounded-full"></div>
+                        </div>
+                      </div>
+                      <div className="text-3xl font-bold text-primary mb-2">{itemType.count.toLocaleString()}</div>
+                      <div className="text-sm text-muted-foreground font-medium">items available</div>
+                    </Card>
+                  ))
+                )}
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {itemTypesLoading ? (
-                // Loading skeleton
-                Array.from({ length: 6 }).map((_, index) => (
-                  <Card
-                    key={index}
-                    className="p-6 border-0 bg-gradient-to-r from-background to-muted/20 rounded-xl"
-                  >
-                    <div className="h-6 bg-muted animate-pulse rounded mb-3" />
-                    <div className="h-8 bg-muted animate-pulse rounded" />
-                  </Card>
-                ))
-              ) : itemTypesError ? (
-                <div className="col-span-full text-center text-muted-foreground p-8">
-                  <div className="text-lg font-medium">Error loading item types</div>
-                  <div className="text-sm text-muted-foreground mt-2">{itemTypesError}</div>
+            {/* Right Column: Recent Materials */}
+            <div className="animate-in fade-in-0 slide-in-from-right-4" style={{ animationDelay: "900ms" }}>
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Recent Materials</h2>
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="hover:bg-gradient-to-r hover:from-primary/10 hover:to-research-green/10 transition-colors text-primary"
+                >
+                  <Link to="/browse" className="flex items-center font-semibold">
+                    Browse All <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
+
+              {materialsLoading ? (
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Card
+                      key={i}
+                      className="p-4 sm:p-6 border-0 bg-gradient-to-r from-background to-muted/20 rounded-xl"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="h-6 w-20 bg-muted animate-pulse rounded" />
+                        <div className="h-4 w-12 bg-muted animate-pulse rounded" />
+                      </div>
+                      <div className="h-6 bg-muted animate-pulse rounded mb-2" />
+                      <div className="h-4 bg-muted animate-pulse rounded mb-3 w-3/4" />
+                      <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+                    </Card>
+                  ))}
                 </div>
-              ) : itemTypes.length === 0 ? (
-                <div className="col-span-full text-center text-muted-foreground p-8">
-                  <div className="text-lg font-medium">No item types available</div>
+              ) : materialsError ? (
+                <div className="text-center text-muted-foreground p-8">
+                  <div className="text-lg font-medium">Error loading materials</div>
+                  <div className="text-sm mt-2">{materialsError}</div>
                 </div>
               ) : (
-                itemTypes.slice(0, 6).map((itemType, index) => (
-                  <Card
-                    key={itemType.type}
-                    className="p-6 hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer border-0 bg-gradient-to-r from-background to-primary/5 rounded-xl"
-                    style={{ animationDelay: `${1000 + index * 100}ms` }}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-bold text-foreground capitalize text-lg">
-                        {itemType.type.replace("image_presentation", "presentation").replace("_", " ")}
-                      </h3>
-                      <div className="w-8 h-8 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-primary rounded-full"></div>
-                      </div>
-                    </div>
-                    <div className="text-3xl font-bold text-primary mb-2">{itemType.count.toLocaleString()}</div>
-                    <div className="text-sm text-muted-foreground font-medium">items available</div>
-                  </Card>
-                ))
+                <RecentMaterialsCarousel
+                  allMaterials={materials}
+                  handleMaterialClick={handleMaterialClick}
+                />
               )}
             </div>
+
           </div>
         </div>
 

@@ -176,7 +176,6 @@ iipc-assistant/
 │   │   ├── Dockerfile
 │   │   ├── main.py               # FastAPI embedding server
 │   │   └── requirements.txt
-│   └── IIPC_data/                # Local deployment embeddings (gitignored)
 ├── Frontend/
 │   ├── src/
 │   │   ├── components/

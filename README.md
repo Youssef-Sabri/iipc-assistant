@@ -176,6 +176,7 @@ iipc-assistant/
 │   │   ├── Dockerfile
 │   │   ├── main.py               # FastAPI embedding server
 │   │   └── requirements.txt
+│   └── IIPC_data/                # Created & uploaded directly to HF Space (gitignored)
 ├── Frontend/
 │   ├── src/
 │   │   ├── components/

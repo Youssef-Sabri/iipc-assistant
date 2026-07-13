@@ -105,8 +105,7 @@ export default function ChatPage() {
       const timestamp = Date.now().toString();
       const signature = await generateSignature(timestamp);
 
-      const apiBase = import.meta.env.VITE_CHAT_API_URL || "/api";
-      const response = await fetch(`${apiBase}/chat`, {
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

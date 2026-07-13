@@ -53,45 +53,14 @@ EMBEDDING_TIMEOUT = 20
 # ──────────────────────────────────────────────────────────────────────────────
 
 def initialize_embeddings():
-    """Verify local embeddings existence or download from Hugging Face on deployment."""
-    # If we are local and the file already exists, bypass download
-    if PKL_PATH == LOCAL_PKL_PATH and os.path.exists(PKL_PATH):
-        logger.info(f"Loading local embeddings from {PKL_PATH}...")
-    else:
-        # Always download on deployment, or if we are local but the file is missing
-        logger.info("Downloading embeddings_v3.pkl from Hugging Face...")
+    """Load local embeddings from IIPC_data/embeddings_v3.pkl."""
+    if not os.path.exists(PKL_PATH):
+        logger.error(f"Embeddings file not found at {PKL_PATH}. Please make sure embeddings_v3.pkl is placed in the IIPC_data directory.")
+        raise FileNotFoundError(f"Embeddings file missing at {PKL_PATH}")
         
-        # Ensure parent directories exist before creating/writing to file
-        os.makedirs(os.path.dirname(PKL_PATH), exist_ok=True)
-        
-        hf_user = os.getenv("HF_USERNAME")
-        hf_dataset = os.getenv("HF_DATASET_NAME")
-        hf_file_path = "embeddings_v3.pkl"
-        url = f"https://huggingface.co/datasets/{hf_user}/{hf_dataset}/resolve/main/{hf_file_path}"
-        
-        headers = {}
-        hf_token = os.getenv("HF_TOKEN")
-        if hf_token:
-            headers["Authorization"] = f"Bearer {hf_token}"
-        
-        try:
-            r = requests.get(url, headers=headers, stream=True)
-            r.raise_for_status()
-            with open(PKL_PATH, "wb") as f:
-                for chunk in r.iter_content(chunk_size=8192):
-                    f.write(chunk)
-            logger.info("Download complete!")
-        except Exception as e:
-            logger.error(f"Failed to download embeddings: {e}")
-            raise
-
-    try:
-        with open(PKL_PATH, "rb") as f:
-            data = pickle.load(f)
-    except (pickle.UnpicklingError, ValueError, IndexError) as e:
-        logger.error(f"Failed to load pickled embeddings (corrupted or insecure file): {e}")
-        raise RuntimeError("Failed to deserialize the downloaded embeddings data safely.") from e
-    
+    logger.info(f"Loading local embeddings from {PKL_PATH}...")
+    with open(PKL_PATH, "rb") as f:
+        data = pickle.load(f)
     return data
 
 # Load Data & Index

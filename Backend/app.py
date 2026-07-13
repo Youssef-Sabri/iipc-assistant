@@ -38,7 +38,8 @@ if os.path.exists(LOCAL_PKL_PATH):
 else:
     PKL_PATH = DEPLOY_PKL_PATH
 
-REMOTE_EMBEDDING_API = os.getenv("EMBEDDING_API_URL")
+raw_embedding_url = os.getenv("EMBEDDING_API_URL", "")
+REMOTE_EMBEDDING_API = raw_embedding_url.strip() if raw_embedding_url else ""
 
 # Model Configuration
 GEMINI_MODEL = "gemini-3.1-flash-lite"
@@ -132,24 +133,38 @@ groq_client = Groq(api_key=groq_key) if groq_key else None
 # ──────────────────────────────────────────────────────────────────────────────
 
 def get_remote_embedding(text: str):
-    """Retrieve embedding for a given text from the remote API."""
-    try:
-        headers = {}
-        hf_token = os.getenv("HF_TOKEN")
-        if hf_token:
-            headers["Authorization"] = f"Bearer {hf_token}"
+    """Retrieve embedding for a given text from the remote API with retry handling."""
+    headers = {}
+    hf_token = os.getenv("HF_TOKEN")
+    if hf_token:
+        headers["Authorization"] = f"Bearer {hf_token.strip()}"
 
-        response = requests.post(
-            REMOTE_EMBEDDING_API,
-            json={"text": text},
-            headers=headers,
-            timeout=EMBEDDING_TIMEOUT,
-        )
-        response.raise_for_status()
-        return response.json()["embedding"]
-    except Exception as e:
-        logger.error(f"Embedding API error: {e}")
+    target_url = REMOTE_EMBEDDING_API.strip()
+    if not target_url:
+        logger.error("REMOTE_EMBEDDING_API URL is missing or empty.")
         return None
+
+    for attempt in range(2):
+        try:
+            response = requests.post(
+                target_url,
+                json={"text": text},
+                headers=headers,
+                timeout=EMBEDDING_TIMEOUT,
+            )
+            if response.status_code == 429 and attempt == 0:
+                logger.warning("Embedding API 429 rate-limited. Waiting 1.5s before retrying...")
+                import time
+                time.sleep(1.5)
+                continue
+
+            response.raise_for_status()
+            return response.json()["embedding"]
+        except Exception as e:
+            if attempt == 1:
+                logger.error(f"Embedding API error: {e}")
+                return None
+    return None
 
 def mmr(query_emb, candidate_embs, lambda_param=0.5, top_k=10):
     """Maximal Marginal Relevance (MMR) for diverse, non-repetitive retrieval."""

@@ -1,41 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase, IIPCData } from '@/lib/supabase'
-
-export const useIIPCData = () => {
-  const [data, setData] = useState<IIPCData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        
-        const { data: iipcData, error: fetchError } = await supabase
-          .from('iipc_data')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(100) // Limit to prevent overwhelming the UI
-
-        if (fetchError) {
-          throw fetchError
-        }
-
-        setData(iipcData || [])
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch data')
-        console.error('Error fetching IIPC data:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [])
-
-  return { data, loading, error }
-}
+import { supabase } from '@/lib/supabase'
 
 // Hook for getting item types and their counts
 export const useItemTypes = () => {

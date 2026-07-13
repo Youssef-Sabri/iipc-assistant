@@ -16,26 +16,22 @@ interface ChatMessageProps {
 
 const urlRegex = /((https?:\/\/|www\.)[^\s<>]+)/gi;
 
-
 function linkifyToNodes(text: string) {
   if (!text) return [text];
 
   const nodes: Array<string | JSX.Element> = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
-  // reset regex state (in case of reused regex)
   urlRegex.lastIndex = 0;
 
   while ((match = urlRegex.exec(text)) !== null) {
     const url = match[0];
     const index = match.index;
 
-    // push preceding text
     if (index > lastIndex) {
       nodes.push(text.substring(lastIndex, index));
     }
 
-    // determine proper href
     const href = url.startsWith("http") ? url : `https://${url}`;
 
     nodes.push(
@@ -45,9 +41,6 @@ function linkifyToNodes(text: string) {
         target="_blank"
         rel="noopener noreferrer"
         className="underline hover:text-primary transition-colors break-words"
-        onClick={(e) => {
-          /* allow external link open; if you want to capture analytics, do it here */
-        }}
       >
         {url}
       </a>
@@ -56,12 +49,10 @@ function linkifyToNodes(text: string) {
     lastIndex = index + url.length;
   }
 
-  // push remaining text
   if (lastIndex < text.length) {
     nodes.push(text.substring(lastIndex));
   }
 
-  // If no matches, return the original text as single string (keeps type consistent)
   return nodes.length > 0 ? nodes : [text];
 }
 
@@ -105,7 +96,6 @@ export function ChatMessage({ message }: ChatMessageProps) {
         }
       };
     } else {
-      // Not typing, just display the content (full)
       setDisplayedContent(message.content);
     }
   }, [message.isTyping, message.fullContent, message.content]);
@@ -120,7 +110,6 @@ export function ChatMessage({ message }: ChatMessageProps) {
     };
   }, []);
 
-  // Convert displayedContent string into nodes with links
   const contentNodes = linkifyToNodes(displayedContent);
 
   return (
@@ -152,11 +141,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
         <Card
           className={cn(
             "p-3 sm:p-6 shadow-md sm:shadow-lg transition-all duration-300 relative",
-            // User messages - right aligned, primary color
             isUser && "bg-gradient-to-r from-primary to-primary-dark text-primary-foreground border-0 rounded-2xl rounded-br-md",
-            // Assistant messages - left aligned, solid background
             isAssistant && "bg-background border border-border/50 rounded-2xl rounded-bl-md hover:shadow-lg",
-            // System messages - special styling
             isSystem && "bg-gradient-to-r from-muted/30 to-muted/10 text-muted-foreground border border-muted rounded-2xl"
           )}
         >
@@ -172,9 +158,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
             <p
               className={cn(
                 "text-sm sm:text-base leading-relaxed m-0",
-                // Fix for URL wrapping - use break-words and break-all for long URLs
                 "whitespace-pre-wrap break-words [word-break:break-word] hyphens-auto",
-                // Additional CSS for better URL handling
                 "[overflow-wrap:anywhere]"
               )}
             >

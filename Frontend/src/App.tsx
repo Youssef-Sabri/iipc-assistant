@@ -1,15 +1,15 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/sidebar/AppSidebar";
-import Index from "./pages/Index";
-import Chat from "./pages/Chat";
-import Browse from "./pages/Browse";
-import About from "./pages/About";
+import Index from "./pages/HomePage";
+import Chat from "./pages/ChatPage";
+import Browse from "./pages/BrowsePage";
+import About from "./pages/AboutPage";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+
 
 function MainLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -28,20 +28,18 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/chat" element={<MainLayout><Chat /></MainLayout>} />
-          <Route path="/browse" element={<MainLayout><Browse /></MainLayout>} />
-          <Route path="/about" element={<MainLayout><About /></MainLayout>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <TooltipProvider>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/chat" element={<MainLayout><Chat /></MainLayout>} />
+        <Route path="/browse" element={<MainLayout><Browse /></MainLayout>} />
+        <Route path="/about" element={<MainLayout><About /></MainLayout>} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  </TooltipProvider>
 );
 
 export default App;

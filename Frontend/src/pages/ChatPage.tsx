@@ -1,12 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { ChatMessage } from "@/components/chat/ChatMessage";
-import { ChatInput } from "@/components/chat/ChatInput";
-
-import { 
-  MessageCircle,
-  Sparkles
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ChatMessage } from "../components/chat/ChatMessage";
+import { ChatInput } from "../components/chat/ChatInput";
+import { MessageCircle, Sparkles } from "lucide-react";
 
 interface Message {
   id: string;
@@ -33,7 +28,7 @@ async function generateSignature(timestamp: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-export default function Chat() {
+export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -49,19 +44,6 @@ export default function Chat() {
   useEffect(() => {
     scrollToBottom();
   }, [messages.length]); 
-
-  useEffect(() => {
-    const viewport = document.querySelector('meta[name="viewport"]');
-    if (viewport) {
-      viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
-    }
-    
-    return () => {
-      if (viewport) {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1');
-      }
-    };
-  }, []);
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -123,7 +105,8 @@ export default function Chat() {
       const timestamp = Date.now().toString();
       const signature = await generateSignature(timestamp);
 
-      const response = await fetch("/api/chat", {
+      const apiBase = import.meta.env.VITE_CHAT_API_URL || "/api";
+      const response = await fetch(`${apiBase}/chat`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

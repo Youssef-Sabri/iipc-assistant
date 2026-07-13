@@ -8,7 +8,6 @@ import {
   Calendar,
   ExternalLink,
   Archive,
-  Sparkles,
   Building,
   Network,
   Trophy,
@@ -16,7 +15,7 @@ import {
 } from "lucide-react";
 import iipcLogo from "@/assets/iipc-logo.svg";
 
-const About = () => {
+export default function AboutPage() {
   const objectives = [
     {
       icon: Target,
@@ -298,81 +297,43 @@ const About = () => {
                 className="bg-gradient-to-r from-primary to-research-green text-white hover:shadow-lg transition-all duration-300"
               >
                 <a
-                  href="https://netpreserve.org/iipc-mailing-list"
+                  href="https://netpreserve.org/about/mailing-list/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center"
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />
-                  Join List
+                  Subscribe
                 </a>
               </Button>
             </Card>
 
             <Card className="p-8 text-center bg-gradient-to-r from-background to-primary/5 border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate-in fade-in-0 slide-in-from-bottom-4" style={{ animationDelay: "2000ms" }}>
               <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <BookOpen className="w-8 h-8 text-primary" />
+                <Users className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-4">Resources</h3>
+              <h3 className="text-xl font-bold text-foreground mb-4">Steering Committee</h3>
               <p className="text-muted-foreground mb-6">
-                Access training materials, publications, and collaborative projects from the IIPC community.
+                View the list of member institutions represented in the IIPC governance.
               </p>
               <Button
                 asChild
                 className="bg-gradient-to-r from-primary to-research-green text-white hover:shadow-lg transition-all duration-300"
               >
                 <a
-                  href="https://netpreserve.org/web-archiving/training-materials/"
+                  href="https://netpreserve.org/about/steering-committee/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center"
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />
-                  View Resources
+                  View Committee
                 </a>
               </Button>
             </Card>
           </div>
         </div>
-
-        {/* Call to Action */}
-        <Card
-          className="p-8 sm:p-12 text-center bg-gradient-to-r from-primary/10 to-research-green/10 border-primary/30 animate-in fade-in-0 slide-in-from-bottom-4 rounded-2xl max-w-4xl mx-auto"
-          style={{ animationDelay: "2200ms" }}
-        >
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-r from-primary/20 to-research-green/20 flex items-center justify-center mx-auto mb-6 sm:mb-8 shadow-lg">
-            <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
-          </div>
-
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">
-            Preserving Digital Heritage Together
-          </h2>
-
-          <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 leading-relaxed max-w-2xl mx-auto">
-            The mission of the IIPC is to acquire, preserve and make accessible knowledge and information from the Internet for future generations everywhere, promoting global exchange and international relations.
-          </p>
-
-          <div className="flex flex-col sm:flex-row justify-center gap-4 max-w-md mx-auto">
-            <Button
-              asChild
-              size="lg"
-              className="w-full sm:w-auto shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 bg-gradient-to-r from-primary to-research-green text-white border-0 px-10 py-4 text-lg font-semibold"
-            >
-              <a
-                href="https://netpreserve.org/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center"
-              >
-                <ExternalLink className="w-6 h-6 mr-3" />
-                Visit IIPC Website
-              </a>
-            </Button>
-          </div>
-        </Card>
       </div>
     </div>
   );
-};
-
-export default About;
+}

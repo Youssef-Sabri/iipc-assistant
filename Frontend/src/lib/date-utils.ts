@@ -9,15 +9,16 @@ export function formatMaterialDate(dateString: string | null | undefined, format
     }
     
     if (formatType === 'year') {
-      return date.getFullYear().toString();
+      if (/^\d{4}$/.test(dateString.trim())) return dateString.trim();
+      return date.getUTCFullYear().toString();
     }
     
     if (formatType === 'full') {
-      return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+      return date.toLocaleDateString("en-US", { timeZone: "UTC", year: "numeric", month: "long", day: "numeric" });
     }
     
     if (formatType === 'short') {
-      return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+      return date.toLocaleDateString("en-US", { timeZone: "UTC", year: "numeric", month: "short", day: "numeric" });
     }
   } catch {
     // Return fallback on parser failure

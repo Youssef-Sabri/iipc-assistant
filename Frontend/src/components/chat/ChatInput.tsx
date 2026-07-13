@@ -52,24 +52,10 @@ export function ChatInput({
 
   const handleFocus = () => {
     setIsFocused(true);
-
-    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-      const viewport = document.querySelector('meta[name="viewport"]');
-      if (viewport) {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
-      }
-    }
   };
 
   const handleBlur = () => {
     setIsFocused(false);
-    // Restore zoom capability
-    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-      const viewport = document.querySelector('meta[name="viewport"]');
-      if (viewport) {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1');
-      }
-    }
   };
 
   return (

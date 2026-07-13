@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,8 +17,6 @@ import {
   Calendar,
   User,
   ExternalLink,
-  Grid3X3,
-  List,
   Archive,
   X,
   ChevronLeft,
@@ -26,79 +24,14 @@ import {
   Filter,
 } from "lucide-react";
 import { useItemTypes } from "@/hooks/use-iipc-data";
+import { ViewMode, ViewModeToggle } from "../components/browse/ViewModeToggle";
 
-type ViewMode = "grid" | "list";
 type SortField = "title" | "date" | "creator" | "item_type";
 type SortOrder = "asc" | "desc";
 
 const ITEMS_PER_PAGE = 12;
 
-const ViewModeToggle = ({ viewMode, setViewMode }: { viewMode: ViewMode; setViewMode: (v: ViewMode) => void; }) => {
-  // Desktop segmented + Mobile icon-first toggle
-  return (
-    <div className="flex items-center gap-2">
-      {/* Desktop segmented control */}
-      <div className="hidden md:inline-flex rounded-md overflow-hidden border border-primary/20">
-        <button
-          aria-pressed={viewMode === "grid"}
-          onClick={() => setViewMode("grid")}
-          className={`inline-flex items-center gap-2 px-3 py-2 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary/50 ${
-            viewMode === "grid"
-              ? "bg-gradient-to-r from-primary to-research-green text-white shadow-md"
-              : "bg-transparent text-primary hover:bg-primary/5"
-          }`}
-        >
-          <Grid3X3 className="w-4 h-4" />
-          <span className="text-sm font-medium">Grid</span>
-        </button>
-
-        <button
-          aria-pressed={viewMode === "list"}
-          onClick={() => setViewMode("list")}
-          className={`inline-flex items-center gap-2 px-3 py-2 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary/50 ${
-            viewMode === "list"
-              ? "bg-gradient-to-r from-primary to-research-green text-white shadow-md"
-              : "bg-transparent text-primary hover:bg-primary/5"
-          }`}
-        >
-          <List className="w-4 h-4" />
-          <span className="text-sm font-medium">List</span>
-        </button>
-      </div>
-
-      {/* Mobile toggle (icon-first, distinct active state) */}
-      <div className="inline-flex md:hidden items-center gap-2 rounded-md overflow-hidden border border-primary/10 bg-white/0">
-        <button
-          aria-pressed={viewMode === "grid"}
-          onClick={() => setViewMode("grid")}
-          className={`flex flex-col items-center justify-center px-3 py-2 w-16 transition-all duration-150 ${
-            viewMode === "grid"
-              ? "bg-gradient-to-r from-primary to-research-green text-white shadow"
-              : "text-primary hover:bg-primary/5"
-          }`}
-        >
-          <Grid3X3 className="w-5 h-5" />
-          <span className="text-[11px] mt-1">Grid</span>
-        </button>
-
-        <button
-          aria-pressed={viewMode === "list"}
-          onClick={() => setViewMode("list")}
-          className={`flex flex-col items-center justify-center px-3 py-2 w-16 transition-all duration-150 ${
-            viewMode === "list"
-              ? "bg-gradient-to-r from-primary to-research-green text-white shadow"
-              : "text-primary hover:bg-primary/5"
-          }`}
-        >
-          <List className="w-5 h-5" />
-          <span className="text-[11px] mt-1">List</span>
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const Browse = () => {
+export default function BrowsePage() {
   // Data & UI state
   const [materials, setMaterials] = useState<IIPCData[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -106,6 +39,7 @@ const Browse = () => {
   const [error, setError] = useState<string | null>(null);
 
   const { itemTypes } = useItemTypes();
+  const requestIdRef = useRef(0);
 
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [searchQuery, setSearchQuery] = useState("");
@@ -130,7 +64,7 @@ const Browse = () => {
 
   // Fetch page (server-side filtering/sorting/pagination) — debounced
   const fetchPage = useCallback(async () => {
-    const debounce = 200;
+    const currentRequestId = ++requestIdRef.current;
     setLoading(true);
     try {
       const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -141,7 +75,7 @@ const Browse = () => {
         .select("id,title,description,creator,item_type,date,ark_url,created_at", { count: "exact" });
 
       // Search: case-insensitive substring match across fields
-      const q = searchQuery.trim();
+      const q = searchQuery.trim().replace(/,/g, " "); // Replace commas with spaces to avoid PostgREST separator clash
       if (q) {
         const escaped = q.replace(/%/g, "\\%").replace(/_/g, "\\_");
         query = query.or(
@@ -169,9 +103,10 @@ const Browse = () => {
 
       query = query.range(start, end);
 
-      // small client debounce
-      await new Promise((r) => setTimeout(r, debounce));
       const res = await query;
+      // If a newer query was launched while this was in-flight, discard this result
+      if (currentRequestId !== requestIdRef.current) return;
+
       const { data, error: fetchError, count } = res as {
         data: IIPCData[] | null;
         error: Error | null;
@@ -183,12 +118,15 @@ const Browse = () => {
       setTotalCount(typeof count === "number" ? count : (data ? data.length : 0));
       setError(null);
     } catch (err) {
+      if (currentRequestId !== requestIdRef.current) return;
       console.error("Fetch page error", err);
       setError(err instanceof Error ? err.message : String(err));
       setMaterials([]);
       setTotalCount(0);
     } finally {
-      setLoading(false);
+      if (currentRequestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   }, [currentPage, searchQuery, selectedType, selectedYear, sortField, sortOrder]);
 
@@ -233,10 +171,7 @@ const Browse = () => {
     };
   }, []);
 
-  // Reset page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedType, selectedYear, sortField, sortOrder]);
+
 
   const handleMaterialClick = (arkUrl: string) => {
     if (arkUrl) window.open(arkUrl, "_blank");
@@ -248,6 +183,7 @@ const Browse = () => {
     setSelectedYear("all");
     setSortField("date");
     setSortOrder("desc");
+    setCurrentPage(1);
   };
 
   const hasActiveFilters = !!(searchQuery || selectedType !== "all" || selectedYear !== "all");
@@ -259,6 +195,7 @@ const Browse = () => {
     const [field, order] = value.split("-") as [SortField, SortOrder];
     setSortField(field);
     setSortOrder(order);
+    setCurrentPage(1);
   };
 
   return (
@@ -271,7 +208,6 @@ const Browse = () => {
               <Archive className="w-6 h-6 text-primary" />
             </div>
             <div>
-              {/* Gradient title like Index */}
               <h1 className="text-3xl sm:text-4xl font-bold mb-1 bg-gradient-to-r from-primary to-research-green bg-clip-text text-transparent">
                 Browse Materials
               </h1>
@@ -291,7 +227,10 @@ const Browse = () => {
               <Input
                 placeholder="Search by title, author, or description..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="pl-12 h-12 text-base sm:text-lg border-primary/20 focus:border-primary/50"
               />
             </div>
@@ -305,7 +244,13 @@ const Browse = () => {
                     <span className="md:hidden">Type</span>
                     <span className="hidden md:inline">Filter by Type</span>
                   </label>
-                  <Select value={selectedType} onValueChange={setSelectedType}>
+                  <Select
+                    value={selectedType}
+                    onValueChange={(val) => {
+                      setSelectedType(val);
+                      setCurrentPage(1);
+                    }}
+                  >
                     <SelectTrigger className="border-primary/20 focus:border-primary/50 h-10 md:h-auto">
                       <SelectValue placeholder="All Types" />
                     </SelectTrigger>
@@ -314,7 +259,6 @@ const Browse = () => {
                       {itemTypes.map((t) => (
                         <SelectItem key={t.type} value={t.type}>
                           <span className="capitalize">{t.type}</span>
-                          <span className="hidden md:inline"> {!isNaN(Number(t.count)) ? ` (${t.count})` : ""}</span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -327,7 +271,13 @@ const Browse = () => {
                     <span className="md:hidden">Year</span>
                     <span className="hidden md:inline">Filter by Year</span>
                   </label>
-                  <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <Select
+                    value={selectedYear}
+                    onValueChange={(val) => {
+                      setSelectedYear(val);
+                      setCurrentPage(1);
+                    }}
+                  >
                     <SelectTrigger className="border-primary/20 focus:border-primary/50 h-10 md:h-auto">
                       <SelectValue placeholder="All Years" />
                     </SelectTrigger>
@@ -401,7 +351,7 @@ const Browse = () => {
         </Card>
 
         {/* Results header */}
-        <div className="mb-6 flex items-center justify-between animate-in fade-in-0 slide-in-from-top-4" style={{ animationDelay: "300ms" }}>
+        <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-foreground">
               {totalCount === 0 ? `All Materials (0)` : `${totalCount.toLocaleString()} materials`}
@@ -450,11 +400,7 @@ const Browse = () => {
           </Card>
         ) : (
           <>
-            {/* Materials Grid/List:
-                - Desktop uses original grid/list markup (md:block)
-                - Mobile uses distinct render (mobile-grid vs mobile-list)
-            */}
-            <div className="mb-8 animate-in fade-in-0 slide-in-from-bottom-4" style={{ animationDelay: "400ms" }}>
+            <div className="mb-8">
               {/* MOBILE: distinct grid vs list */}
               <div className={`block md:hidden ${viewMode === "grid" ? "grid grid-cols-2 gap-3" : "space-y-2"}`}>
                 {materials.map((material) => (
@@ -471,7 +417,6 @@ const Browse = () => {
                     onKeyDown={(e) => { if (e.key === "Enter") handleMaterialClick(material.ark_url); }}
                   >
                     {viewMode === "grid" ? (
-                      // mobile grid tile
                       <>
                         <div className="flex items-start justify-between mb-2">
                           <Badge variant="outline" className="capitalize border-primary/20 text-primary bg-gradient-to-r from-primary/10 to-research-green/10 px-2 py-0.5 text-[10px] font-semibold rounded-full">
@@ -487,7 +432,6 @@ const Browse = () => {
                         <p className="text-[11px] text-muted-foreground/80 line-clamp-2 leading-relaxed">{material.description || ""}</p>
                       </>
                     ) : (
-                      // mobile compact list row
                       <>
                         <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary/20 to-research-green/20 flex items-center justify-center shrink-0">
                           <div className="w-2 h-2 bg-primary rounded-full" />
@@ -510,14 +454,21 @@ const Browse = () => {
                 ))}
               </div>
 
-              {/* DESKTOP: original grid/list layout preserved */}
+              {/* DESKTOP */}
               <div className={`${viewMode === "grid" ? "hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6" : "hidden md:block space-y-4"}`}>
-                {materials.map((material, index) => (
+                {materials.map((material) => (
                   <Card
                     key={material.id}
-                    className={`hover:shadow-2xl hover:border-primary/20 border border-primary/10 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 bg-gradient-to-br from-background to-primary/5 hover:to-primary/10 ${viewMode === "list" ? "p-5 flex items-center gap-6" : "p-6 flex flex-col h-full"}`}
+                    role="button"
+                    tabIndex={0}
+                    className={`hover:shadow-2xl hover:border-primary/20 border border-primary/10 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 bg-gradient-to-br from-background to-primary/5 hover:to-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${viewMode === "list" ? "p-5 flex items-center gap-6" : "p-6 flex flex-col h-full"}`}
                     onClick={() => handleMaterialClick(material.ark_url)}
-                    style={{ animationDelay: `${500 + index * 50}ms` }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleMaterialClick(material.ark_url);
+                      }
+                    }}
                   >
                     {viewMode === "grid" ? (
                       <>
@@ -641,6 +592,4 @@ const Browse = () => {
       </div>
     </div>
   );
-};
-
-export default Browse;
+}

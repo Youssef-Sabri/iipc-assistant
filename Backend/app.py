@@ -46,7 +46,7 @@ GROQ_FALLBACK_MODELS = ["meta-llama/llama-4-scout-17b-16e-instruct"]
 
 # Timeout Configuration (Seconds)
 GEMINI_TIMEOUT = 20
-EMBEDDING_TIMEOUT = 20
+EMBEDDING_TIMEOUT = 8
 
 # ──────────────────────────────────────────────────────────────────────────────
 # CORE INITIALIZATION
@@ -85,8 +85,12 @@ def initialize_embeddings():
             logger.error(f"Failed to download embeddings: {e}")
             raise
 
-    with open(PKL_PATH, "rb") as f:
-        data = pickle.load(f)
+    try:
+        with open(PKL_PATH, "rb") as f:
+            data = pickle.load(f)
+    except (pickle.UnpicklingError, ValueError, IndexError) as e:
+        logger.error(f"Failed to load pickled embeddings (corrupted or insecure file): {e}")
+        raise RuntimeError("Failed to deserialize the downloaded embeddings data safely.") from e
     
     return data
 
@@ -102,7 +106,10 @@ dates = data.get("dates", [])
 ark_urls = data.get("ark_urls", [])
 subjects = data.get("subjects", [])
 descriptions = data.get("descriptions", [])
-item_types = data.get("item_types", [])
+item_types = [
+    "presentation" if t in ("image_presentation", "image presentation") else t
+    for t in data.get("item_types", [])
+]
 source_urls = data.get("source_urls", [])
 
 index = faiss.IndexFlatIP(embeddings_matrix.shape[1])
@@ -117,7 +124,8 @@ genai_client = genai.Client(
     api_key=os.getenv("GEMINI_API_KEY"),
     http_options={'timeout': GEMINI_TIMEOUT * 1000}  # milliseconds
 )
-groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+groq_key = os.getenv("GROQ_API_KEY")
+groq_client = Groq(api_key=groq_key) if groq_key else None
 
 # ──────────────────────────────────────────────────────────────────────────────
 # RAG LOGIC & UTILITIES
@@ -184,6 +192,10 @@ def retrieve_top_k(query, k_chunks=60, k_docs=10, k_final=20):
 
     retrieved = []
     for idx, dist in zip(indices[0], distances[0]):
+        if idx >= len(doc_ids) or idx >= len(cleaned_texts):
+            logger.warning(f"FAISS index {idx} is out of bounds for document arrays.")
+            continue
+
         retrieved.append({
             "idx": idx,
             "doc_id": doc_ids[idx],
@@ -294,6 +306,10 @@ def generate_response(query, context_docs):
         logger.warning(f"[⚠️ LLM] Gemini failed ({type(e).__name__}) — falling back to Groq...")
 
     # 2. Try Groq fallback chain
+    if not groq_client:
+        logger.error("[❌ LLM] Gemini failed and Groq fallback is not configured.")
+        raise RuntimeError("All LLM providers failed.")
+
     for model in GROQ_FALLBACK_MODELS:
         try:
             chat_completion = groq_client.chat.completions.create(
@@ -327,9 +343,16 @@ def chat():
     """Main chat endpoint handling context retrieval and response generation."""
     try:
         data = request.get_json()
+        if not isinstance(data, dict):
+            return jsonify({"error": "Invalid request payload. Expected JSON object."}), 400
+
         query = data.get("query")
-        if not query:
-            return jsonify({"error": "Query is required."}), 400
+        if not query or not isinstance(query, str) or not query.strip():
+            return jsonify({"error": "Query is required and must be a non-empty string."}), 400
+
+        query = query.strip()
+        if len(query) > 2000:
+            return jsonify({"error": "Query exceeds maximum limit of 2000 characters."}), 400
 
         logger.info(f"Incoming Query: {query}")
 
@@ -350,4 +373,5 @@ def chat():
         return jsonify({"error": "An internal server error occurred."}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True, port=7860)
+    debug_mode = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1")
+    app.run(debug=debug_mode, port=int(os.getenv("PORT", 7860)))

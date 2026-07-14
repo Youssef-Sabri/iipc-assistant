@@ -125,7 +125,7 @@ export default function HomePage() {
                   itemTypes.slice(0, 6).map((itemType) => (
                     <Card
                       key={itemType.type}
-                      className="p-6 hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer border-0 bg-gradient-to-r from-background to-primary/5 rounded-xl"
+                      className="p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border border-primary/10 hover:border-primary/20 bg-gradient-to-r from-background to-primary/5 rounded-xl"
                     >
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="font-bold text-foreground capitalize text-lg">

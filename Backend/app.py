@@ -30,7 +30,17 @@ except ImportError:
 
 @spaces.GPU
 def dummy_gpu_func():
-    pass
+    try:
+        import torch
+        x = torch.tensor([1.0]).cuda()
+        print("GPU tensor created successfully:", x)
+    except Exception as e:
+        print("GPU function execution bypassed/failed:", e)
+
+try:
+    dummy_gpu_func()
+except Exception as e:
+    print("Failed to call dummy_gpu_func during startup:", e)
 
 # Configuration & Constants
 logging.basicConfig(

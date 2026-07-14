@@ -1,5 +1,6 @@
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+import time
 import pickle
 import logging
 import traceback
@@ -14,13 +15,24 @@ from google import genai
 from groq import Groq
 from dotenv import load_dotenv
 
-# ──────────────────────────────────────────────────────────────────────────────
-# CONFIGURATION & CONSTANTS
-# ──────────────────────────────────────────────────────────────────────────────
-
 load_dotenv()
 
-# Logging Configuration
+# Hugging Face ZeroGPU local mock workaround
+try:
+    import spaces
+except ImportError:
+    import sys
+    from types import ModuleType
+    mock_spaces = ModuleType("spaces")
+    mock_spaces.GPU = lambda func: func
+    sys.modules["spaces"] = mock_spaces
+    import spaces
+
+@spaces.GPU
+def dummy_gpu_func():
+    pass
+
+# Configuration & Constants
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -28,34 +40,24 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Paths & API URLs
 LOCAL_PKL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "IIPC_data", "embeddings_v3.pkl")
 DEPLOY_PKL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "IIPC_data", "embeddings_v3.pkl")
+PKL_PATH = LOCAL_PKL_PATH if os.path.exists(LOCAL_PKL_PATH) else DEPLOY_PKL_PATH
 
-# Use local parent workspace path if it exists, otherwise fall back to a path inside the backend folder (crucial for Docker)
-if os.path.exists(LOCAL_PKL_PATH):
-    PKL_PATH = LOCAL_PKL_PATH
-else:
-    PKL_PATH = DEPLOY_PKL_PATH
+REMOTE_EMBEDDING_API = os.getenv("EMBEDDING_API_URL", "").strip() or None
+HF_TOKEN = os.getenv("HF_TOKEN", "").strip() or None
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip() or None
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip() or None
 
-REMOTE_EMBEDDING_API = os.getenv("EMBEDDING_API_URL")
-
-# Model Configuration
 GEMINI_MODEL = "gemini-3.1-flash-lite"
 GROQ_FALLBACK_MODELS = ["meta-llama/llama-4-scout-17b-16e-instruct"]
-
-# Timeout Configuration (Seconds)
 GEMINI_TIMEOUT = 20
 EMBEDDING_TIMEOUT = 20
 
-# ──────────────────────────────────────────────────────────────────────────────
-# CORE INITIALIZATION
-# ──────────────────────────────────────────────────────────────────────────────
-
+# Core Initialization
 def initialize_embeddings():
-    """Load local embeddings from IIPC_data/embeddings_v3.pkl."""
     if not os.path.exists(PKL_PATH):
-        logger.error(f"Embeddings file not found at {PKL_PATH}. Please make sure embeddings_v3.pkl is placed in the IIPC_data directory.")
+        logger.error(f"Embeddings file not found at {PKL_PATH}.")
         raise FileNotFoundError(f"Embeddings file missing at {PKL_PATH}")
         
     logger.info(f"Loading local embeddings from {PKL_PATH}...")
@@ -63,7 +65,6 @@ def initialize_embeddings():
         data = pickle.load(f)
     return data
 
-# Load Data & Index
 data = initialize_embeddings()
 embeddings_matrix = np.array(data["embeddings"]).astype("float32")
 faiss.normalize_L2(embeddings_matrix)
@@ -84,30 +85,29 @@ source_urls = data.get("source_urls", [])
 index = faiss.IndexFlatIP(embeddings_matrix.shape[1])
 index.add(embeddings_matrix)
 
-# Initialize API Clients
 app = Flask(__name__)
 CORS(app)
 
+if not GEMINI_API_KEY:
+    logger.warning("GEMINI_API_KEY is not set. Primary chat response generation will fail.")
 
 genai_client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY"),
-    http_options={'timeout': GEMINI_TIMEOUT * 1000}  # milliseconds
+    api_key=GEMINI_API_KEY,
+    http_options={'timeout': GEMINI_TIMEOUT * 1000}
 )
-groq_key = os.getenv("GROQ_API_KEY")
-groq_client = Groq(api_key=groq_key) if groq_key else None
+groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-# ──────────────────────────────────────────────────────────────────────────────
-# RAG LOGIC & UTILITIES
-# ──────────────────────────────────────────────────────────────────────────────
-
+# RAG Logic & Utilities
 def get_remote_embedding(text: str):
-    """Retrieve embedding for a given text from the remote API."""
-    try:
-        headers = {}
-        hf_token = os.getenv("HF_TOKEN")
-        if hf_token:
-            headers["Authorization"] = f"Bearer {hf_token}"
+    if not REMOTE_EMBEDDING_API:
+        logger.error("Embedding API URL is not configured.")
+        return None
 
+    headers = {}
+    if HF_TOKEN:
+        headers["Authorization"] = f"Bearer {HF_TOKEN}"
+
+    try:
         response = requests.post(
             REMOTE_EMBEDDING_API,
             json={"text": text},
@@ -121,17 +121,12 @@ def get_remote_embedding(text: str):
         return None
 
 def mmr(query_emb, candidate_embs, lambda_param=0.5, top_k=10):
-    """Maximal Marginal Relevance (MMR) for diverse, non-repetitive retrieval."""
     if len(candidate_embs) == 0:
         return []
         
     selected = []
     candidates = list(range(len(candidate_embs)))
-    
-    # Precompute similarities to the query
     sim_to_query = np.dot(candidate_embs, query_emb)
-    
-    # Keep track of similarity of candidates to the selected set
     max_sim_to_selected = np.zeros(len(candidate_embs))
     
     while len(selected) < top_k and candidates:
@@ -141,7 +136,6 @@ def mmr(query_emb, candidate_embs, lambda_param=0.5, top_k=10):
         selected.append(best_idx)
         candidates.remove(best_idx)
         
-        # Update max similarity array with the newly selected embedding
         if candidates:
             sims = np.dot(candidate_embs[candidates], candidate_embs[best_idx])
             max_sim_to_selected[candidates] = np.maximum(max_sim_to_selected[candidates], sims)
@@ -149,20 +143,18 @@ def mmr(query_emb, candidate_embs, lambda_param=0.5, top_k=10):
     return selected
 
 def retrieve_top_k(query, k_chunks=60, k_docs=10, k_final=20):
-    """Perform FAISS search and rank documents based on embedding similarity."""
     query_embedding = get_remote_embedding(query)
     if not query_embedding:
         return []
 
     q_emb = np.array([query_embedding]).astype("float32")
     faiss.normalize_L2(q_emb)
-
     distances, indices = index.search(q_emb, k_chunks)
 
     retrieved = []
     for idx, dist in zip(indices[0], distances[0]):
         if idx >= len(doc_ids) or idx >= len(cleaned_texts):
-            logger.warning(f"FAISS index {idx} is out of bounds for document arrays.")
+            logger.warning(f"FAISS index {idx} is out of bounds.")
             continue
 
         retrieved.append({
@@ -184,7 +176,6 @@ def retrieve_top_k(query, k_chunks=60, k_docs=10, k_final=20):
     for r in retrieved:
         doc_groups[r["doc_id"]].append(r)
 
-    # Filter to top k_docs (presentations) with highest single match score
     top_docs = sorted(
         doc_groups.items(),
         key=lambda x: max(c["score"] for c in x[1]),
@@ -198,14 +189,12 @@ def retrieve_top_k(query, k_chunks=60, k_docs=10, k_final=20):
     if not candidates:
         return []
 
-    # Re-rank candidate chunks using MMR to extract the best diverse set
     candidate_vectors = np.array([embeddings_matrix[c["idx"]] for c in candidates])
     mmr_selected_indices = mmr(q_emb.flatten(), candidate_vectors, lambda_param=0.5, top_k=k_final)
 
     return [candidates[i] for i in mmr_selected_indices]
 
 def _build_prompt(query, context_docs):
-    """Construct the final system prompt with retrieved context."""
     grouped_docs = defaultdict(list)
     doc_metadata = {}
     
@@ -260,10 +249,8 @@ Question: {query}
 Answer:"""
 
 def generate_response(query, context_docs):
-    """Generate LLM response with Gemini primary and Groq fallback."""
     prompt = _build_prompt(query, context_docs)
 
-    # 1. Try Gemini (Native SDK timeout)
     try:
         response = genai_client.models.generate_content(
             model=GEMINI_MODEL,
@@ -274,7 +261,6 @@ def generate_response(query, context_docs):
     except Exception as e:
         logger.warning(f"[⚠️ LLM] Gemini failed ({type(e).__name__}) — falling back to Groq...")
 
-    # 2. Try Groq fallback chain
     if not groq_client:
         logger.error("[❌ LLM] Gemini failed and Groq fallback is not configured.")
         raise RuntimeError("All LLM providers failed.")
@@ -295,10 +281,7 @@ def generate_response(query, context_docs):
     logger.error("[❌ LLM] All AI providers exhausted.")
     raise RuntimeError("All LLM providers failed.")
 
-# ──────────────────────────────────────────────────────────────────────────────
-# ENDPOINTS & MIDDLEWARE
-# ──────────────────────────────────────────────────────────────────────────────
-
+# Endpoints & Middleware
 @app.route("/", methods=["GET"])
 def home():
     return "IIPC Assistant Backend is active.", 200
@@ -309,7 +292,6 @@ def ping():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    """Main chat endpoint handling context retrieval and response generation."""
     try:
         data = request.get_json()
         if not isinstance(data, dict):
@@ -324,7 +306,6 @@ def chat():
             return jsonify({"error": "Query exceeds maximum limit of 2000 characters."}), 400
 
         logger.info(f"Incoming Query: {query}")
-
         context_docs = retrieve_top_k(query)
         logger.info(f"Context retrieval: {len(context_docs)} chunks found.")
 
@@ -333,7 +314,6 @@ def chat():
 
         answer, model_used = generate_response(query, context_docs)
         logger.info(f"Success: Response generated by {model_used}")
-
         return jsonify({"response": answer})
     except RuntimeError:
         return jsonify({"error": "All AI providers are currently unavailable."}), 503
@@ -343,4 +323,4 @@ def chat():
 
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1")
-    app.run(debug=debug_mode, port=int(os.getenv("PORT", 7860)))
+    app.run(host="0.0.0.0", debug=debug_mode, port=int(os.getenv("PORT", 7860)))

@@ -18,6 +18,14 @@ export default defineConfig(({ mode }) => {
           target: backendUrl,
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ""),
+          configure: (proxy) => {
+            proxy.on("proxyReq", (proxyReq) => {
+              if (env.HF_TOKEN) {
+                const token = env.HF_TOKEN.trim();
+                proxyReq.setHeader("Authorization", `Bearer ${token}`);
+              }
+            });
+          },
         },
       },
     },

@@ -14,7 +14,9 @@ An AI-powered research assistant for exploring IIPC Web Archiving conference mat
 - **Rich Metadata Context** — Answers are enriched with metadata details such as titles, authors, dates, and institutional affiliations.
 - **Diverse Retrieval** — Combines vector search with diversity filters to gather context across multiple presentations.
 - **Comprehensive Archive Access** — Filter and browse posters, presentations, and transcripts with direct links to original documents.
-- **Modern User Experience** — Responsive interface optimized for desktop, tablet, and mobile.
+- **Responsive View Modes** — Instantly toggle between visual grid and structured list layouts optimized dynamically for all viewports.
+- **Performance & UX Refinements** — Debounced search inputs and opacity-dimmed page transitions prevent unnecessary database queries and visual layout flickering.
+- **Modern User Experience** — Fluid interface optimized with responsive typography, dark-mode styling, and tactile active-shrink button scales for mobile devices.
 
 ## Architecture
 
@@ -180,7 +182,9 @@ iipc-assistant/
 ├── Frontend/
 │   ├── src/
 │   │   ├── components/
+│   │   │   ├── browse/           # ViewModeToggle for grid/list views
 │   │   │   ├── chat/             # ChatInput, ChatMessage
+│   │   │   ├── home/             # RecentMaterialsCarousel
 │   │   │   ├── sidebar/          # AppSidebar
 │   │   │   └── ui/               # shadcn/ui components (button, card, badge, etc.)
 │   │   ├── pages/                # Index, Chat, Browse, About, NotFound

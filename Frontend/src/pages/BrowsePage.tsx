@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useState, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,11 +42,12 @@ export default function BrowsePage() {
   const { itemTypes } = useItemTypes();
   const requestIdRef = useRef(0);
 
+  const [searchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [selectedType, setSelectedType] = useState<string>("all");
-  const [selectedYear, setSelectedYear] = useState<string>("all");
+  const [selectedType, setSelectedType] = useState<string>(searchParams.get("type") || "all");
+  const [selectedYear, setSelectedYear] = useState<string>(searchParams.get("year") || "all");
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [currentPage, setCurrentPage] = useState(1);
@@ -474,7 +476,7 @@ export default function BrowsePage() {
                     key={material.id}
                     role="button"
                     tabIndex={0}
-                    className={`hover:shadow-2xl hover:border-primary/20 border border-primary/10 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 bg-gradient-to-br from-background to-primary/5 hover:to-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${viewMode === "list" ? "p-5 flex items-center gap-6" : "p-6 flex flex-col h-full"}`}
+                    className={`hover:shadow-2xl hover:border-primary/20 border border-primary/10 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 active:scale-95 bg-gradient-to-br from-background to-primary/5 hover:to-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${viewMode === "list" ? "p-5 flex items-center gap-6" : "p-6 flex flex-col h-full"}`}
                     onClick={() => handleMaterialClick(material.ark_url)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {

@@ -102,7 +102,7 @@ export default function AboutPage() {
         {/* Key Facts */}
         <div className="mb-20">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {keyFacts.map((fact, index) => {
+            {keyFacts.map((fact) => {
               const IconComponent = fact.icon;
               return (
                 <Card
@@ -158,7 +158,7 @@ export default function AboutPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {objectives.map((objective, index) => {
+            {objectives.map((objective) => {
               const IconComponent = objective.icon;
               return (
                 <Card
@@ -190,7 +190,7 @@ export default function AboutPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {workingAreas.map((area, index) => {
+            {workingAreas.map((area) => {
               const IconComponent = area.icon;
               return (
                 <Card
@@ -257,7 +257,7 @@ export default function AboutPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="p-8 text-center bg-gradient-to-r from-background to-primary/5 border border-primary/10 hover:border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <Card className="p-8 text-center bg-gradient-to-r from-background to-primary/5 border border-primary/10 hover:border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95">
               <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Building className="w-8 h-8 text-primary" />
               </div>
@@ -281,7 +281,7 @@ export default function AboutPage() {
               </Button>
             </Card>
 
-            <Card className="p-8 text-center bg-gradient-to-r from-background to-primary/5 border border-primary/10 hover:border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <Card className="p-8 text-center bg-gradient-to-r from-background to-primary/5 border border-primary/10 hover:border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95">
               <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Mail className="w-8 h-8 text-primary" />
               </div>
@@ -305,7 +305,7 @@ export default function AboutPage() {
               </Button>
             </Card>
 
-            <Card className="p-8 text-center bg-gradient-to-r from-background to-primary/5 border border-primary/10 hover:border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <Card className="p-8 text-center bg-gradient-to-r from-background to-primary/5 border border-primary/10 hover:border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95">
               <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Users className="w-8 h-8 text-primary" />
               </div>

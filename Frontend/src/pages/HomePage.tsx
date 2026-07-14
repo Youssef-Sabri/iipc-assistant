@@ -123,21 +123,26 @@ export default function HomePage() {
                   </div>
                 ) : (
                   itemTypes.slice(0, 6).map((itemType) => (
-                    <Card
+                    <Link
+                      to={`/browse?type=${itemType.type}`}
                       key={itemType.type}
-                      className="p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border border-primary/10 hover:border-primary/20 bg-gradient-to-r from-background to-primary/5 rounded-xl"
+                      className="block"
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-bold text-foreground capitalize text-lg">
-                          {itemType.type.replace("image_presentation", "presentation").replace("_", " ")}
-                        </h3>
-                        <div className="w-8 h-8 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <Card
+                        className="p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95 cursor-pointer border border-primary/10 hover:border-primary/20 bg-gradient-to-r from-background to-primary/5 rounded-xl h-full"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="font-bold text-foreground capitalize text-lg">
+                            {itemType.type.replace("image_presentation", "presentation").replace("_", " ")}
+                          </h3>
+                          <div className="w-8 h-8 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 bg-primary rounded-full"></div>
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-3xl font-bold text-primary mb-2">{itemType.count.toLocaleString()}</div>
-                      <div className="text-sm text-muted-foreground font-medium">items available</div>
-                    </Card>
+                        <div className="text-3xl font-bold text-primary mb-2">{itemType.count.toLocaleString()}</div>
+                        <div className="text-sm text-muted-foreground font-medium">items available</div>
+                      </Card>
+                    </Link>
                   ))
                 )}
               </div>

@@ -84,8 +84,7 @@ export default function BrowsePage() {
       }
 
       if (selectedType && selectedType !== "all") {
-        const tEsc = selectedType.replace(/%/g, "\\%").replace(/_/g, "\\_");
-        query = query.ilike("item_type", `%${tEsc}%`);
+        query = query.eq("item_type", selectedType);
       }
 
       // Year filter => translate to range (utilizes date index)

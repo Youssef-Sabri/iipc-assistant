@@ -50,6 +50,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Suppress Werkzeug access logs
+logging.getLogger('werkzeug').setLevel(logging.WARNING)
+
 LOCAL_PKL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "IIPC_data", "embeddings_v3.pkl")
 DEPLOY_PKL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "IIPC_data", "embeddings_v3.pkl")
 PKL_PATH = LOCAL_PKL_PATH if os.path.exists(LOCAL_PKL_PATH) else DEPLOY_PKL_PATH
@@ -267,6 +270,7 @@ def generate_response(query, context_docs):
             contents=prompt,
         )
         logger.info(f"[✅ LLM] Responded via {GEMINI_MODEL} (Gemini)")
+        
         return response.text, GEMINI_MODEL
     except Exception as e:
         logger.warning(f"[⚠️ LLM] Gemini failed ({type(e).__name__}) — falling back to Groq...")

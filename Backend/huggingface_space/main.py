@@ -10,6 +10,15 @@ os.environ["HF_HOME"] = "/app/hf_cache"
 
 app = FastAPI()
 
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+logger = logging.getLogger("embedding_api")
+logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+
 # Load model and tokenizer locally inside the HuggingFace Space
 model_name = "BAAI/bge-m3"
 tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir="/app/hf_cache")
@@ -53,15 +62,15 @@ class TextInput(BaseModel):
 # Endpoint: generate embeddings
 @app.post("/embed")
 def embed(input: TextInput):
-    # Standardize input to a list of strings
     if isinstance(input.text, str):
+        logger.info(f"Incoming embedding query (single): {input.text[:80]}...")
         if not input.text.strip():
             raise HTTPException(status_code=400, detail="Text input cannot be empty.")
         vectors = get_embeddings_local([input.text])
-        # Return single vector for backward compatibility with single string calls
         return {"embedding": vectors[0]}
     
     elif isinstance(input.text, list):
+        logger.info(f"Incoming embedding query (batch): {len(input.text)} items.")
         if not input.text:
             raise HTTPException(status_code=400, detail="Text list cannot be empty.")
         vectors = get_embeddings_local(input.text)

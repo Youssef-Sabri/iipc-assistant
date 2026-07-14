@@ -52,11 +52,7 @@ export function RecentMaterialsCarousel({
       {displayedMaterials.map((material, idx) => (
         <Card
           key={`${material.id}-${currentIndex}-${idx}`}
-          className="p-4 sm:p-6 hover:shadow-lg transition-all duration-500 cursor-pointer transform hover:scale-105 animate-in fade-in-0 slide-in-from-bottom-4 border-0 bg-gradient-to-r from-background to-primary/5 rounded-xl"
-          style={{
-            animationDelay: `${idx * 200}ms`,
-            animationDuration: "700ms",
-          }}
+          className="p-4 sm:p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95 cursor-pointer border border-primary/10 hover:border-primary/20 bg-gradient-to-r from-background to-primary/5 rounded-xl"
           onClick={() => handleMaterialClick(material.ark_url)}
           role="button"
           tabIndex={0}

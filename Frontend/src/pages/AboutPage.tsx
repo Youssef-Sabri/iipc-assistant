@@ -107,7 +107,7 @@ export default function AboutPage() {
               return (
                 <Card
                   key={fact.label}
-                  className="p-6 text-center bg-gradient-to-r from-background to-primary/5 border border-primary/10 hover:border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                  className="p-6 text-center bg-gradient-to-r from-background to-primary/5 border border-primary/10 hover:border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95"
                 >
                   <div className="w-12 h-12 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center mx-auto mb-4">
                     <IconComponent className="w-6 h-6 text-primary" />
@@ -163,7 +163,7 @@ export default function AboutPage() {
               return (
                 <Card
                   key={objective.title}
-                  className="p-8 bg-gradient-to-r from-background to-primary/5 border border-primary/10 hover:border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                  className="p-8 bg-gradient-to-r from-background to-primary/5 border border-primary/10 hover:border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95"
                 >
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
@@ -195,7 +195,7 @@ export default function AboutPage() {
               return (
                 <Card
                   key={area.title}
-                  className="p-8 bg-gradient-to-r from-background to-primary/5 border border-primary/10 hover:border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                  className="p-8 bg-gradient-to-r from-background to-primary/5 border border-primary/10 hover:border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95"
                 >
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">

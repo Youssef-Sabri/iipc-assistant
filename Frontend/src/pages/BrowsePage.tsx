@@ -416,67 +416,17 @@ export default function BrowsePage() {
         ) : (
           <>
             <div className={`mb-8 transition-opacity duration-200 ${loading ? "opacity-40 pointer-events-none" : "opacity-100"}`}>
-              {/* MOBILE: distinct grid vs list */}
-              <div className={`block md:hidden ${viewMode === "grid" ? "grid grid-cols-2 gap-3" : "space-y-2"}`}>
-                {materials.map((material) => (
-                  <article
-                    key={material.id + "-mobile"}
-                    onClick={() => handleMaterialClick(material.ark_url)}
-                    className={`cursor-pointer transform transition-all duration-300 active:scale-95 ${
-                      viewMode === "grid"
-                        ? "p-4 rounded-xl bg-gradient-to-br from-background to-primary/5 hover:to-primary/10 border border-primary/10 hover:border-primary/20 shadow-sm hover:shadow-md"
-                        : "p-3 flex items-center gap-3 bg-gradient-to-r from-background to-primary/5 border border-primary/10 rounded-xl hover:bg-primary/10 shadow-sm"
-                    }`}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === "Enter") handleMaterialClick(material.ark_url); }}
-                  >
-                    {viewMode === "grid" ? (
-                      <>
-                        <div className="flex items-start justify-between mb-2">
-                          <Badge variant="outline" className="capitalize border-primary/20 text-primary bg-gradient-to-r from-primary/10 to-research-green/10 px-2 py-0.5 text-[10px] font-semibold rounded-full">
-                            {material.item_type?.replace("image_presentation", "presentation").replace("_", " ") || "document"}
-                          </Badge>
-                          <span className="text-[10px] font-medium text-muted-foreground">{formatMaterialDate(material.date, 'year')}</span>
-                        </div>
-
-                        <h3 className="font-bold text-foreground text-xs leading-snug mb-1 line-clamp-2 hover:text-primary transition-colors">{material.title || "Untitled"}</h3>
-
-                        <div className="text-[11px] font-medium text-muted-foreground mb-1 line-clamp-1">by {material.creator || "Unknown Author"}</div>
-
-                        <p className="text-[11px] text-muted-foreground/80 line-clamp-2 leading-relaxed">{material.description || ""}</p>
-                      </>
-                    ) : (
-                      <>
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary/20 to-research-green/20 flex items-center justify-center shrink-0">
-                          <div className="w-2 h-2 bg-primary rounded-full" />
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-medium text-sm line-clamp-1">{material.title || "Untitled"}</h3>
-                            <span className="text-[11px] text-muted-foreground">{formatMaterialDate(material.date, 'year')}</span>
-                          </div>
-                          <div className="text-xs text-muted-foreground">{material.creator || "Unknown Author"}</div>
-                        </div>
-
-                        <div className="ml-2 text-primary">
-                          <ExternalLink className="w-4 h-4" />
-                        </div>
-                      </>
-                    )}
-                  </article>
-                ))}
-              </div>
-
-              {/* DESKTOP */}
-              <div className={`${viewMode === "grid" ? "hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6" : "hidden md:block space-y-4"}`}>
+              <div className={viewMode === "grid" ? "grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6" : "space-y-3 md:space-y-4"}>
                 {materials.map((material) => (
                   <Card
                     key={material.id}
                     role="button"
                     tabIndex={0}
-                    className={`hover:shadow-2xl hover:border-primary/20 border border-primary/10 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 active:scale-95 bg-gradient-to-br from-background to-primary/5 hover:to-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${viewMode === "list" ? "p-5 flex items-center gap-6" : "p-6 flex flex-col h-full"}`}
+                    className={`hover:shadow-xl hover:border-primary/20 border border-primary/10 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 active:scale-95 bg-gradient-to-br from-background to-primary/5 hover:to-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                      viewMode === "list"
+                        ? "p-3 md:p-5 flex items-center gap-3 md:gap-6"
+                        : "p-4 md:p-6 flex flex-col h-full"
+                    }`}
                     onClick={() => handleMaterialClick(material.ark_url)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
@@ -487,34 +437,40 @@ export default function BrowsePage() {
                   >
                     {viewMode === "grid" ? (
                       <>
-                        <div className="flex items-start justify-between mb-4">
-                          <Badge variant="outline" className="capitalize border-primary/30 text-primary bg-gradient-to-r from-primary/10 to-research-green/10 px-3 py-1 font-semibold">
+                        <div className="flex items-start justify-between mb-2 md:mb-4">
+                          <Badge variant="outline" className="capitalize border-primary/25 text-primary bg-gradient-to-r from-primary/10 to-research-green/10 px-2 md:px-3 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full">
                             {material.item_type?.replace("image_presentation", "presentation").replace("_", " ") || "document"}
                           </Badge>
-                          <span className="text-sm text-muted-foreground font-medium">
+                          <span className="text-[10px] md:text-sm text-muted-foreground font-medium">
                             {formatMaterialDate(material.date, 'year')}
                           </span>
                         </div>
 
-                        <h3 className="font-bold text-foreground mb-3 line-clamp-2 text-lg leading-snug hover:text-primary transition-colors">{material.title || "Untitled"}</h3>
+                        <h3 className="font-bold text-foreground text-xs md:text-lg leading-snug mb-1 md:mb-3 line-clamp-2 hover:text-primary transition-colors">
+                          {material.title || "Untitled"}
+                        </h3>
 
-                        <div className="flex items-center gap-2 mb-2 text-muted-foreground/95">
-                          <User className="w-4 h-4 text-primary/70" />
-                          <span className="text-xs font-semibold uppercase tracking-wider">{material.creator || "Unknown Author"}</span>
+                        <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-2 text-muted-foreground/95">
+                          <User className="w-3.5 h-3.5 text-primary/70 shrink-0" />
+                          <span className="text-[10px] md:text-xs font-semibold uppercase tracking-wider line-clamp-1">
+                            {material.creator || "Unknown Author"}
+                          </span>
                         </div>
 
                         {material.date && (
-                          <div className="flex items-center gap-2 mb-3">
-                            <Calendar className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">
+                          <div className="hidden md:flex items-center gap-2 mb-3 text-muted-foreground">
+                            <Calendar className="w-4 h-4 shrink-0" />
+                            <span className="text-sm">
                               {formatMaterialDate(material.date, 'full')}
                             </span>
                           </div>
                         )}
 
-                        <p className="text-sm text-muted-foreground/90 line-clamp-3 leading-relaxed mb-6">{material.description || "No description available"}</p>
+                        <p className="text-[11px] md:text-sm text-muted-foreground/80 md:text-muted-foreground/90 line-clamp-2 md:line-clamp-3 leading-relaxed mb-4 md:mb-6">
+                          {material.description || "No description available"}
+                        </p>
 
-                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-primary/5">
+                        <div className="hidden md:flex items-center justify-between mt-auto pt-4 border-t border-primary/5">
                           <span className="text-xs text-primary font-bold tracking-wide flex items-center gap-1 group">
                             View Material
                             <ExternalLink className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
@@ -523,37 +479,43 @@ export default function BrowsePage() {
                       </>
                     ) : (
                       <>
+                        <div className="flex md:hidden w-8 h-8 rounded-full bg-gradient-to-r from-primary/20 to-research-green/20 items-center justify-center shrink-0">
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                        </div>
+
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between mb-2">
-                            <Badge variant="outline" className="capitalize border-primary/30 text-primary bg-gradient-to-r from-primary/10 to-research-green/10 font-semibold">
+                          <div className="flex items-start justify-between mb-1 md:mb-2">
+                            <Badge variant="outline" className="capitalize border-primary/30 text-primary bg-gradient-to-r from-primary/10 to-research-green/10 px-2 md:px-3 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold">
                               {material.item_type?.replace("image_presentation", "presentation").replace("_", " ") || "document"}
                             </Badge>
-                            <span className="text-sm text-muted-foreground font-medium">
+                            <span className="text-[10px] md:text-sm text-muted-foreground font-medium">
                               {formatMaterialDate(material.date, 'year')}
                             </span>
                           </div>
 
-                          <h3 className="font-bold text-foreground mb-2 text-lg line-clamp-1">{material.title || "Untitled"}</h3>
+                          <h3 className="font-bold text-foreground text-sm md:text-lg mb-1 md:mb-2 line-clamp-1">
+                            {material.title || "Untitled"}
+                          </h3>
 
-                          <div className="flex items-center gap-4 mb-2 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-2">
-                              <User className="w-4 h-4" />
-                              <span className="font-medium">{material.creator || "Unknown Author"}</span>
+                          <div className="flex items-center gap-3 md:gap-4 mb-1 md:mb-2 text-[10px] md:text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1 md:gap-2">
+                              <User className="w-3.5 h-3.5 text-primary/70 shrink-0" />
+                              <span className="font-semibold uppercase tracking-wider line-clamp-1">{material.creator || "Unknown Author"}</span>
                             </div>
                             {material.date && (
-                              <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4" />
-                                <span>
-                                  {formatMaterialDate(material.date, 'short')}
-                                </span>
+                              <div className="hidden md:flex items-center gap-1 md:gap-2">
+                                <Calendar className="w-3.5 h-3.5 shrink-0" />
+                                <span>{formatMaterialDate(material.date, 'short')}</span>
                               </div>
                             )}
                           </div>
 
-                          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{material.description || "No description available"}</p>
+                          <p className="text-[11px] md:text-sm text-muted-foreground line-clamp-1 md:line-clamp-2 leading-relaxed">
+                            {material.description || "No description available"}
+                          </p>
                         </div>
 
-                        <ExternalLink className="w-5 h-5 text-primary flex-shrink-0 ml-4" />
+                        <ExternalLink className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0 ml-2 md:ml-4" />
                       </>
                     )}
                   </Card>

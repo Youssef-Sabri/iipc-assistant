@@ -107,8 +107,7 @@ export default function AboutPage() {
               return (
                 <Card
                   key={fact.label}
-                  className="p-6 text-center bg-gradient-to-r from-background to-primary/5 border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate-in fade-in-0 slide-in-from-bottom-4"
-                  style={{ animationDelay: `${index * 100}ms` }}
+                  className="p-6 text-center bg-gradient-to-r from-background to-primary/5 border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                 >
                   <div className="w-12 h-12 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center mx-auto mb-4">
                     <IconComponent className="w-6 h-6 text-primary" />
@@ -122,7 +121,7 @@ export default function AboutPage() {
         </div>
 
         {/* History Section */}
-        <div className="mb-20 animate-in fade-in-0 slide-in-from-left-4" style={{ animationDelay: "400ms" }}>
+        <div className="mb-20">
           <Card className="p-8 sm:p-12 bg-gradient-to-r from-primary/5 to-research-green/5 border-primary/20">
             <div className="flex items-center gap-4 mb-8">
               <div className="w-12 h-12 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center">
@@ -151,7 +150,7 @@ export default function AboutPage() {
 
         {/* Mission & Objectives */}
         <div className="mb-20">
-          <div className="text-center mb-12 animate-in fade-in-0 slide-in-from-top-4" style={{ animationDelay: "600ms" }}>
+          <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Mission & Objectives</h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
               The Consortium works to preserve the digital heritage of our time through collaborative efforts and innovative approaches.
@@ -164,8 +163,7 @@ export default function AboutPage() {
               return (
                 <Card
                   key={objective.title}
-                  className="p-8 bg-gradient-to-r from-background to-primary/5 border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate-in fade-in-0 slide-in-from-bottom-4"
-                  style={{ animationDelay: `${800 + index * 100}ms` }}
+                  className="p-8 bg-gradient-to-r from-background to-primary/5 border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                 >
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
@@ -184,7 +182,7 @@ export default function AboutPage() {
 
         {/* Working Areas */}
         <div className="mb-20">
-          <div className="text-center mb-12 animate-in fade-in-0 slide-in-from-top-4" style={{ animationDelay: "1000ms" }}>
+          <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Key Working Areas</h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
               Members participate in working groups that focus on different aspects of web archiving, including content development, preservation of web archives, training, and research.
@@ -197,8 +195,7 @@ export default function AboutPage() {
               return (
                 <Card
                   key={area.title}
-                  className="p-8 bg-gradient-to-r from-background to-primary/5 border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate-in fade-in-0 slide-in-from-left-4"
-                  style={{ animationDelay: `${1200 + index * 100}ms` }}
+                  className="p-8 bg-gradient-to-r from-background to-primary/5 border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                 >
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
@@ -216,7 +213,7 @@ export default function AboutPage() {
         </div>
 
         {/* Leadership & Organization */}
-        <div className="mb-20 animate-in fade-in-0 slide-in-from-right-4" style={{ animationDelay: "1400ms" }}>
+        <div className="mb-20">
           <Card className="p-8 sm:p-12 bg-gradient-to-r from-primary/5 to-research-green/5 border-primary/20">
             <div className="flex items-center gap-4 mb-8">
               <div className="w-12 h-12 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center">
@@ -252,7 +249,7 @@ export default function AboutPage() {
 
         {/* Engagement & Community */}
         <div className="mb-20">
-          <div className="text-center mb-12 animate-in fade-in-0 slide-in-from-top-4" style={{ animationDelay: "1600ms" }}>
+          <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Engage with IIPC</h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
               Join our global community of web archiving professionals and researchers.
@@ -260,7 +257,7 @@ export default function AboutPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="p-8 text-center bg-gradient-to-r from-background to-primary/5 border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate-in fade-in-0 slide-in-from-bottom-4" style={{ animationDelay: "1800ms" }}>
+            <Card className="p-8 text-center bg-gradient-to-r from-background to-primary/5 border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
               <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Building className="w-8 h-8 text-primary" />
               </div>
@@ -284,7 +281,7 @@ export default function AboutPage() {
               </Button>
             </Card>
 
-            <Card className="p-8 text-center bg-gradient-to-r from-background to-primary/5 border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate-in fade-in-0 slide-in-from-bottom-4" style={{ animationDelay: "1900ms" }}>
+            <Card className="p-8 text-center bg-gradient-to-r from-background to-primary/5 border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
               <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Mail className="w-8 h-8 text-primary" />
               </div>
@@ -308,7 +305,7 @@ export default function AboutPage() {
               </Button>
             </Card>
 
-            <Card className="p-8 text-center bg-gradient-to-r from-background to-primary/5 border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate-in fade-in-0 slide-in-from-bottom-4" style={{ animationDelay: "2000ms" }}>
+            <Card className="p-8 text-center bg-gradient-to-r from-background to-primary/5 border-primary/20 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
               <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Users className="w-8 h-8 text-primary" />
               </div>

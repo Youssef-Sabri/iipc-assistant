@@ -86,7 +86,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             
             {/* Left Column: Available Item Types */}
-            <div className="animate-in fade-in-0 slide-in-from-left-4" style={{ animationDelay: "800ms" }}>
+            <div>
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Available Item Types</h2>
                 <Button
@@ -122,11 +122,10 @@ export default function HomePage() {
                     <div className="text-lg font-medium">No item types available</div>
                   </div>
                 ) : (
-                  itemTypes.slice(0, 6).map((itemType, index) => (
+                  itemTypes.slice(0, 6).map((itemType) => (
                     <Card
                       key={itemType.type}
                       className="p-6 hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer border-0 bg-gradient-to-r from-background to-primary/5 rounded-xl"
-                      style={{ animationDelay: `${1000 + index * 100}ms` }}
                     >
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="font-bold text-foreground capitalize text-lg">
@@ -145,7 +144,7 @@ export default function HomePage() {
             </div>
 
             {/* Right Column: Recent Materials */}
-            <div className="animate-in fade-in-0 slide-in-from-right-4" style={{ animationDelay: "900ms" }}>
+            <div>
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Recent Materials</h2>
                 <Button
@@ -194,8 +193,7 @@ export default function HomePage() {
 
         {/* CTA Section */}
         <Card
-          className="p-8 sm:p-12 text-center bg-gradient-to-r from-primary/10 to-research-green/10 border-primary/30 animate-in fade-in-0 slide-in-from-bottom-4 rounded-2xl max-w-4xl mx-auto"
-          style={{ animationDelay: "1200ms" }}
+          className="p-8 sm:p-12 text-center bg-gradient-to-r from-primary/10 to-research-green/10 border-primary/30 rounded-2xl max-w-4xl mx-auto"
         >
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-r from-primary/20 to-research-green/20 flex items-center justify-center mx-auto mb-6 sm:mb-8 shadow-lg">
             <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />

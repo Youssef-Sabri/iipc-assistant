@@ -43,6 +43,7 @@ export default function BrowsePage() {
 
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const [sortField, setSortField] = useState<SortField>("date");
@@ -50,6 +51,17 @@ export default function BrowsePage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const [availableYears, setAvailableYears] = useState<number[]>([]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setSearchQuery(searchInput);
+      setCurrentPage(1);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchInput]);
 
   const sortOptions = [
     { value: "date-desc", label: "Date (Newest First)", mobileLabel: "Newest" },
@@ -177,6 +189,7 @@ export default function BrowsePage() {
   };
 
   const clearFilters = () => {
+    setSearchInput("");
     setSearchQuery("");
     setSelectedType("all");
     setSelectedYear("all");
@@ -218,17 +231,16 @@ export default function BrowsePage() {
         </div>
 
         {/* Filters Card */}
-        <Card className="p-4 sm:p-6 mb-8 bg-gradient-to-r from-background to-primary/5 border-primary/20 animate-in fade-in-0 slide-in-from-top-4" style={{ animationDelay: "200ms" }}>
+        <Card className="p-4 sm:p-6 mb-8 bg-gradient-to-r from-background to-primary/5 border-primary/20">
           <div className="space-y-4">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
                 placeholder="Search by title, author, or description..."
-                value={searchQuery}
+                value={searchInput}
                 onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
+                  setSearchInput(e.target.value);
                 }}
                 className="pl-12 h-12 text-base sm:text-lg border-primary/20 focus:border-primary/50"
               />
@@ -364,7 +376,7 @@ export default function BrowsePage() {
         </div>
 
         {/* Results */}
-        {loading ? (
+        {loading && materials.length === 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
               <Card key={i} className="p-6 animate-pulse">
@@ -401,7 +413,7 @@ export default function BrowsePage() {
           </Card>
         ) : (
           <>
-            <div className="mb-8">
+            <div className={`mb-8 transition-opacity duration-200 ${loading ? "opacity-40 pointer-events-none" : "opacity-100"}`}>
               {/* MOBILE: distinct grid vs list */}
               <div className={`block md:hidden ${viewMode === "grid" ? "grid grid-cols-2 gap-3" : "space-y-2"}`}>
                 {materials.map((material) => (
@@ -549,14 +561,14 @@ export default function BrowsePage() {
 
             {/* Pagination */}
             {totalCount > ITEMS_PER_PAGE && (
-              <Card className="p-4 sm:p-6 bg-gradient-to-r from-background to-primary/5 border-primary/20 animate-in fade-in-0 slide-in-from-bottom-4" style={{ animationDelay: "600ms" }}>
+              <Card className="p-4 sm:p-6 bg-gradient-to-r from-background to-primary/5 border-primary/20">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                   <div className="text-sm text-muted-foreground font-medium text-center md:text-left">
                     Showing <span className="font-bold text-primary">{startIndex + 1}</span> to <span className="font-bold text-primary">{showingTo}</span> of <span className="font-bold text-primary">{totalCount.toLocaleString()}</span> materials
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage(Math.max(1, currentPage - 1))} disabled={currentPage === 1} className="border-primary/20 hover:bg-primary/10">
+                    <Button variant="outline" size="sm" onClick={() => setCurrentPage(Math.max(1, currentPage - 1))} disabled={currentPage === 1 || loading} className="border-primary/20 hover:bg-primary/10">
                       <ChevronLeft className="w-4 h-4" />
                       <span className="hidden md:inline">Previous</span>
                     </Button>
@@ -573,14 +585,14 @@ export default function BrowsePage() {
                         if (pageNum < 1 || pageNum > totalPages) return null;
 
                         return (
-                          <Button key={pageNum} variant={pageNum === currentPage ? "default" : "outline"} size="sm" onClick={() => setCurrentPage(pageNum)} className={pageNum === currentPage ? "bg-gradient-to-r from-primary to-research-green text-white" : "border-primary/20 hover:bg-primary/10"}>
+                          <Button key={pageNum} variant={pageNum === currentPage ? "default" : "outline"} size="sm" onClick={() => setCurrentPage(pageNum)} disabled={pageNum === currentPage || loading} className={pageNum === currentPage ? "bg-gradient-to-r from-primary to-research-green text-white" : "border-primary/20 hover:bg-primary/10"}>
                             {pageNum}
                           </Button>
                         );
                       })}
                     </div>
 
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage((p) => Math.min(Math.ceil(totalCount / ITEMS_PER_PAGE), p + 1))} disabled={startIndex + ITEMS_PER_PAGE >= totalCount} className="border-primary/20 hover:bg-primary/10">
+                    <Button variant="outline" size="sm" onClick={() => setCurrentPage((p) => Math.min(Math.ceil(totalCount / ITEMS_PER_PAGE), p + 1))} disabled={startIndex + ITEMS_PER_PAGE >= totalCount || loading} className="border-primary/20 hover:bg-primary/10">
                       <span className="hidden md:inline">Next</span>
                       <ChevronRight className="w-4 h-4" />
                     </Button>

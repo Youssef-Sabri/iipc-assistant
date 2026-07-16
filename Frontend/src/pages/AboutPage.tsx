@@ -14,61 +14,62 @@ import {
   Mail
 } from "lucide-react";
 import iipcLogo from "@/assets/iipc-logo.svg";
+import { EXTERNAL_URLS } from "@/lib/constants";
+
+const objectives = [
+  {
+    icon: Target,
+    title: "Best Practices Development",
+    description: "Identify and develop best practices for selecting, harvesting, collecting, preserving and providing access to Internet content."
+  },
+  {
+    icon: Globe,
+    title: "International Coverage",
+    description: "Foster broad international coverage in web archive content through outreach and building curated collaborative collections."
+  },
+  {
+    icon: BookOpen,
+    title: "International Advocacy",
+    description: "Develop international advocacy for initiatives and legislation that encourage the collection and preservation of Internet content."
+  },
+  {
+    icon: Archive,
+    title: "Research Facilitation",
+    description: "Encourage and facilitate research use of archived Internet content for academic and scholarly purposes."
+  }
+];
+
+const workingAreas = [
+  {
+    icon: Network,
+    title: "Tools Development",
+    description: "Develop and sustain software and tools for web archiving, ensuring accessibility and effectiveness across institutions."
+  },
+  {
+    icon: Users,
+    title: "Member Engagement",
+    description: "Foster collaboration and knowledge sharing among member institutions through working groups and joint initiatives."
+  },
+  {
+    icon: Building,
+    title: "Partnerships & Outreach",
+    description: "Build strategic partnerships and expand outreach to promote web archiving globally and engage new communities."
+  },
+  {
+    icon: BookOpen,
+    title: "Training & Education",
+    description: "Provide comprehensive training materials, workshops, and educational resources for web archiving professionals."
+  }
+];
+
+const keyFacts = [
+  { label: "Founded", value: "July 2003", icon: Calendar },
+  { label: "Members", value: "35+ Countries", icon: Globe },
+  { label: "Institution Types", value: "Libraries, Archives, Museums", icon: Building },
+  { label: "Charter Members", value: "12 Founding Institutions", icon: Trophy }
+];
 
 export default function AboutPage() {
-  const objectives = [
-    {
-      icon: Target,
-      title: "Best Practices Development",
-      description: "Identify and develop best practices for selecting, harvesting, collecting, preserving and providing access to Internet content."
-    },
-    {
-      icon: Globe,
-      title: "International Coverage",
-      description: "Foster broad international coverage in web archive content through outreach and building curated collaborative collections."
-    },
-    {
-      icon: BookOpen,
-      title: "International Advocacy",
-      description: "Develop international advocacy for initiatives and legislation that encourage the collection and preservation of Internet content."
-    },
-    {
-      icon: Archive,
-      title: "Research Facilitation",
-      description: "Encourage and facilitate research use of archived Internet content for academic and scholarly purposes."
-    }
-  ];
-
-  const workingAreas = [
-    {
-      icon: Network,
-      title: "Tools Development",
-      description: "Develop and sustain software and tools for web archiving, ensuring accessibility and effectiveness across institutions."
-    },
-    {
-      icon: Users,
-      title: "Member Engagement",
-      description: "Foster collaboration and knowledge sharing among member institutions through working groups and joint initiatives."
-    },
-    {
-      icon: Building,
-      title: "Partnerships & Outreach",
-      description: "Build strategic partnerships and expand outreach to promote web archiving globally and engage new communities."
-    },
-    {
-      icon: BookOpen,
-      title: "Training & Education",
-      description: "Provide comprehensive training materials, workshops, and educational resources for web archiving professionals."
-    }
-  ];
-
-  const keyFacts = [
-    { label: "Founded", value: "July 2003", icon: Calendar },
-    { label: "Members", value: "35+ Countries", icon: Globe },
-    { label: "Institution Types", value: "Libraries, Archives, Museums", icon: Building },
-    { label: "Charter Members", value: "12 Founding Institutions", icon: Trophy }
-  ];
-
   return (
     <div className="min-h-[calc(100vh-3rem)] bg-gradient-to-br from-background via-background to-primary/5 overflow-x-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -265,16 +266,8 @@ export default function AboutPage() {
               <p className="text-muted-foreground mb-6">
                 The IIPC accepts membership applications throughout the year from libraries, archives, museums and cultural heritage institutions.
               </p>
-              <Button
-                asChild
-                className="bg-gradient-to-r from-primary to-research-green text-white hover:shadow-lg transition-all duration-300"
-              >
-                <a
-                  href="https://netpreserve.org/join-iipc/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center"
-                >
+              <Button asChild className="bg-gradient-to-r from-primary to-research-green text-white hover:shadow-lg transition-all duration-300">
+                <a href={EXTERNAL_URLS.IIPC_JOIN} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center">
                   <ExternalLink className="w-4 h-4 mr-2" />
                   Join IIPC
                 </a>
@@ -289,16 +282,8 @@ export default function AboutPage() {
               <p className="text-muted-foreground mb-6">
                 Non-members can engage with IIPC on web archiving topics via the open mailing list.
               </p>
-              <Button
-                asChild
-                className="bg-gradient-to-r from-primary to-research-green text-white hover:shadow-lg transition-all duration-300"
-              >
-                <a
-                  href="https://netpreserve.org/about/mailing-list/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center"
-                >
+              <Button asChild className="bg-gradient-to-r from-primary to-research-green text-white hover:shadow-lg transition-all duration-300">
+                <a href={EXTERNAL_URLS.IIPC_MAILING_LIST} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center">
                   <ExternalLink className="w-4 h-4 mr-2" />
                   Subscribe
                 </a>
@@ -313,16 +298,8 @@ export default function AboutPage() {
               <p className="text-muted-foreground mb-6">
                 View the list of member institutions represented in the IIPC governance.
               </p>
-              <Button
-                asChild
-                className="bg-gradient-to-r from-primary to-research-green text-white hover:shadow-lg transition-all duration-300"
-              >
-                <a
-                  href="https://netpreserve.org/about/steering-committee/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center"
-                >
+              <Button asChild className="bg-gradient-to-r from-primary to-research-green text-white hover:shadow-lg transition-all duration-300">
+                <a href={EXTERNAL_URLS.IIPC_STEERING_COMMITTEE} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center">
                   <ExternalLink className="w-4 h-4 mr-2" />
                   View Committee
                 </a>

@@ -2,97 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
-/* IIPC Chatbot Design System - Professional Academic Interface */
-
 @layer base {
   :root {
-    /* Base Background & Text */
-    --background: 0 0% 98%; /* #fafafa */
-    --foreground: 0 0% 10%; /* #1a1a1a */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 10%;
 
-    /* Card & UI Elements */
     --card: 0 0% 100%;
     --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
 
-    /* IIPC Brand Colors - Based on Logo */
-    --primary: 16 83% 52%; /* #f06a50 - Main IIPC orange */
-    --primary-foreground: 0 0% 100%; /* #ffffff */
-    --primary-dark: 16 83% 42%; /* Darker orange */
+    --primary: 16 83% 52%;
+    --primary-foreground: 0 0% 100%;
+    --primary-dark: 16 83% 42%;
 
-    /* IIPC Green - From Logo */
-    --navy: 85 35% 55%; /* #acc676 - Light green from logo */
-    --navy-light: 85 35% 65%; /* Lighter green */
-    --navy-foreground: 0 0% 10%; /* #1a1a1a */
+    --iipc-green: 85 35% 55%;
+    --iipc-green-light: 85 35% 65%;
+    --iipc-green-foreground: 0 0% 10%;
 
-    /* IIPC Teal - From Logo */
-    --research-green: 189 50% 48%; /* #3daab9 - Teal from logo */
+    --research-green: 189 50% 48%;
     --research-green-light: 189 50% 88%;
-    --research-green-dark: 189 50% 38%; /* Darker teal */
-    --research-green-foreground: 0 0% 100%; /* #ffffff */
+    --research-green-dark: 189 50% 38%;
+    --research-green-foreground: 0 0% 100%;
 
-    /* Brand variables mapped to design system colors */
-    --iipc-red: 16 83% 52%; /* Same as primary orange/red */
-    --iipc-green: 85 35% 55%; /* Same as navy/accent green */
-    --iipc-darkgreen: 85 35% 30%; /* Dark green for badge text */
-    --iipc-teal: 189 50% 48%; /* Same as research-green teal */
-    --iipc-gray: 0 0% 80%; /* Consolidated gray #cdcccb */
+    --iipc-darkgreen: 85 35% 30%;
+    --iipc-gray: 0 0% 80%;
 
-    /* Neutral Grays */
     --secondary: 0 0% 96%;
     --secondary-foreground: 0 0% 45%;
 
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
 
-    /* IIPC Green Accent */
-    --accent: 85 35% 55%; /* #acc676 - Green from logo */
-    --accent-foreground: 0 0% 10%; /* #1a1a1a */
+    --accent: 85 35% 55%;
+    --accent-foreground: 0 0% 10%;
 
-    /* Slate Tones */
-    --slate: 0 0% 45%;
-    --slate-light: 0 0% 91%;
-    --slate-dark: 0 0% 25%;
-
-    /* System Colors */
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%; /* #ffffff */
+    --destructive-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%; /* #ffffff */
+    --warning-foreground: 0 0% 100%;
 
     --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%; /* #ffffff */
+    --success-foreground: 0 0% 100%;
 
-    /* Borders & Inputs */
     --border: 0 0% 90%;
     --input: 0 0% 90%;
-    --ring: 16 83% 52%; /* Match primary orange */
+    --ring: 16 83% 52%;
 
-    /* Shadows & Effects */
-    --shadow-soft: 0 0% 0% / 0.05;
-    --shadow-medium: 0 0% 0% / 0.1;
-    --shadow-strong: 0 0% 0% / 0.15;
+    --chat-user: 16 83% 52%;
+    --chat-assistant: 85 35% 95%;
+    --chat-system: 189 50% 95%;
 
-    /* Chat Specific - Aligned with IIPC Theme */
-    --chat-user: 16 83% 52%; /* IIPC orange for user messages */
-    --chat-assistant: 85 35% 95%; /* Light IIPC green for assistant */
-    --chat-system: 189 50% 95%; /* Light IIPC teal for system */
-
-    /* Sidebar - Professional Light Theme */
-    --sidebar-background: 0 0% 100%; /* #ffffff */
-    --sidebar-foreground: 0 0% 10%; /* #1a1a1a */
-    --sidebar-primary: 16 83% 52%; /* IIPC orange */
-    --sidebar-primary-foreground: 0 0% 100%; /* #ffffff */
-    --sidebar-accent: 85 35% 95%; /* Light IIPC green */
-    --sidebar-accent-foreground: 0 0% 10%; /* #1a1a1a */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-primary: 16 83% 52%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 85 35% 95%;
+    --sidebar-accent-foreground: 0 0% 10%;
     --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 16 83% 52%; /* IIPC orange */
+    --sidebar-ring: 16 83% 52%;
     --sidebar-bg: 0 0% 100%;
-    --sidebar-hover: 85 35% 95%; /* Light IIPC green */
-    --sidebar-active: 16 83% 52%; /* IIPC orange */
+    --sidebar-hover: 85 35% 95%;
+    --sidebar-active: 16 83% 52%;
 
     --radius: 0.75rem;
     font-family: 'Inter', 'Lato', 'Open Sans', 'system-ui', 'sans-serif';

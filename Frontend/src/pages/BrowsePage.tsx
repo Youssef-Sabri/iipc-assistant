@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { IIPCData, supabase } from "@/lib/supabase";
 import { formatMaterialDate } from "@/lib/date-utils";
+import { formatItemType, openExternalLink } from "@/lib/utils";
 import {
   Search,
   Calendar,
@@ -25,15 +27,25 @@ import {
   Filter,
 } from "lucide-react";
 import { useItemTypes } from "@/hooks/use-iipc-data";
-import { ViewMode, ViewModeToggle } from "../components/browse/ViewModeToggle";
+import { ViewMode, ViewModeToggle } from "@/components/browse/ViewModeToggle";
 
 type SortField = "title" | "date" | "creator" | "item_type";
 type SortOrder = "asc" | "desc";
 
 const ITEMS_PER_PAGE = 12;
 
+const sortOptions = [
+  { value: "date-desc", label: "Date (Newest First)", mobileLabel: "Newest" },
+  { value: "date-asc", label: "Date (Oldest First)", mobileLabel: "Oldest" },
+  { value: "title-asc", label: "Title (A-Z)", mobileLabel: "A-Z" },
+  { value: "title-desc", label: "Title (Z-A)", mobileLabel: "Z-A" },
+  { value: "creator-asc", label: "Author (A-Z)", mobileLabel: "Author A-Z" },
+  { value: "creator-desc", label: "Author (Z-A)", mobileLabel: "Author Z-A" },
+  { value: "item_type-asc", label: "Type (A-Z)", mobileLabel: "Type A-Z" },
+  { value: "item_type-desc", label: "Type (Z-A)", mobileLabel: "Type Z-A" },
+];
+
 export default function BrowsePage() {
-  // Data & UI state
   const [materials, setMaterials] = useState<IIPCData[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -51,7 +63,6 @@ export default function BrowsePage() {
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [currentPage, setCurrentPage] = useState(1);
-
   const [availableYears, setAvailableYears] = useState<number[]>([]);
 
   useEffect(() => {
@@ -59,24 +70,9 @@ export default function BrowsePage() {
       setSearchQuery(searchInput);
       setCurrentPage(1);
     }, 300);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    return () => clearTimeout(handler);
   }, [searchInput]);
 
-  const sortOptions = [
-    { value: "date-desc", label: "Date (Newest First)", mobileLabel: "Newest" },
-    { value: "date-asc", label: "Date (Oldest First)", mobileLabel: "Oldest" },
-    { value: "title-asc", label: "Title (A-Z)", mobileLabel: "A-Z" },
-    { value: "title-desc", label: "Title (Z-A)", mobileLabel: "Z-A" },
-    { value: "creator-asc", label: "Author (A-Z)", mobileLabel: "Author A-Z" },
-    { value: "creator-desc", label: "Author (Z-A)", mobileLabel: "Author Z-A" },
-    { value: "item_type-asc", label: "Type (A-Z)", mobileLabel: "Type A-Z" },
-    { value: "item_type-desc", label: "Type (Z-A)", mobileLabel: "Type Z-A" },
-  ];
-
-  // Fetch page (server-side filtering/sorting/pagination) — debounced
   const fetchPage = useCallback(async () => {
     const currentRequestId = ++requestIdRef.current;
     setLoading(true);
@@ -88,8 +84,7 @@ export default function BrowsePage() {
         .from("iipc_data")
         .select("id,title,description,creator,item_type,date,ark_url,created_at", { count: "exact" });
 
-      // Search: case-insensitive substring match across fields
-      const q = searchQuery.trim().replace(/,/g, " "); // Replace commas with spaces to avoid PostgREST separator clash
+      const q = searchQuery.trim().replace(/,/g, " ");
       if (q) {
         const escaped = q.replace(/%/g, "\\%").replace(/_/g, "\\_");
         query = query.or(
@@ -101,23 +96,18 @@ export default function BrowsePage() {
         query = query.eq("item_type", selectedType);
       }
 
-      // Year filter => translate to range (utilizes date index)
       if (selectedYear && selectedYear !== "all") {
         const year = Number(selectedYear);
         if (!Number.isNaN(year)) {
-          const from = `${year}-01-01`;
-          const to = `${year}-12-31`;
-          query = query.gte("date", from).lte("date", to);
+          query = query.gte("date", `${year}-01-01`).lte("date", `${year}-12-31`);
         }
       }
 
       const sortColumn = sortField === "date" ? "date" : sortField;
       query = query.order(sortColumn, { ascending: sortOrder === "asc" });
-
       query = query.range(start, end);
 
       const res = await query;
-      // If a newer query was launched while this was in-flight, discard this result
       if (currentRequestId !== requestIdRef.current) return;
 
       const { data, error: fetchError, count } = res as {
@@ -137,17 +127,12 @@ export default function BrowsePage() {
       setMaterials([]);
       setTotalCount(0);
     } finally {
-      if (currentRequestId === requestIdRef.current) {
-        setLoading(false);
-      }
+      if (currentRequestId === requestIdRef.current) setLoading(false);
     }
   }, [currentPage, searchQuery, selectedType, selectedYear, sortField, sortOrder]);
 
-  useEffect(() => {
-    fetchPage();
-  }, [fetchPage]);
+  useEffect(() => { fetchPage(); }, [fetchPage]);
 
-  // Fetch available years once (lightweight)
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -156,11 +141,7 @@ export default function BrowsePage() {
           .from("iipc_data")
           .select("date", { count: undefined })
           .not("date", "is", null);
-        if (error) {
-          console.warn("Years fetch failed:", error);
-          return;
-        }
-        if (!mounted) return;
+        if (error || !mounted) return;
         const yearsSet = new Set<number>();
         (data || []).forEach((r: { date: string }) => {
           try {
@@ -169,26 +150,15 @@ export default function BrowsePage() {
               const y = d.getFullYear();
               if (y >= 1900 && y <= new Date().getFullYear() + 5) yearsSet.add(y);
             }
-          } catch {
-            // ignore
-          }
+          } catch { /* ignore */ }
         });
-        const yearsArr = Array.from(yearsSet).sort((a, b) => b - a);
-        setAvailableYears(yearsArr);
+        setAvailableYears(Array.from(yearsSet).sort((a, b) => b - a));
       } catch (err) {
         console.warn("Failed to load years", err);
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
-
-
-
-  const handleMaterialClick = (arkUrl: string) => {
-    if (arkUrl) window.open(arkUrl, "_blank");
-  };
 
   const clearFilters = () => {
     setSearchInput("");
@@ -201,7 +171,6 @@ export default function BrowsePage() {
   };
 
   const hasActiveFilters = !!(searchQuery || selectedType !== "all" || selectedYear !== "all");
-
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const showingTo = Math.min(startIndex + ITEMS_PER_PAGE, totalCount);
 
@@ -235,35 +204,24 @@ export default function BrowsePage() {
         {/* Filters Card */}
         <Card className="p-4 sm:p-6 mb-8 bg-gradient-to-r from-background to-primary/5 border-primary/20">
           <div className="space-y-4">
-            {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
                 placeholder="Search by title, author, or description..."
                 value={searchInput}
-                onChange={(e) => {
-                  setSearchInput(e.target.value);
-                }}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-12 h-12 text-base sm:text-lg border-primary/20 focus:border-primary/50"
               />
             </div>
 
-            {/* Responsive filters grid */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
               <div className="md:col-span-8 flex flex-col gap-4 md:flex-row md:items-end md:gap-4">
-                {/* Type Filter */}
                 <div className="flex-1 min-w-0">
                   <label className="block text-sm font-medium text-muted-foreground mb-2">
                     <span className="md:hidden">Type</span>
                     <span className="hidden md:inline">Filter by Type</span>
                   </label>
-                  <Select
-                    value={selectedType}
-                    onValueChange={(val) => {
-                      setSelectedType(val);
-                      setCurrentPage(1);
-                    }}
-                  >
+                  <Select value={selectedType} onValueChange={(val) => { setSelectedType(val); setCurrentPage(1); }}>
                     <SelectTrigger className="border-primary/20 focus:border-primary/50 h-10 md:h-auto">
                       <SelectValue placeholder="All Types" />
                     </SelectTrigger>
@@ -271,43 +229,31 @@ export default function BrowsePage() {
                       <SelectItem value="all">All Types</SelectItem>
                       {itemTypes.map((t) => (
                         <SelectItem key={t.type} value={t.type}>
-                          <span className="capitalize">
-                            {t.type.replace("image_presentation", "presentation").replace("_", " ")}
-                          </span>
+                          <span className="capitalize">{formatItemType(t.type)}</span>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                {/* Year Filter */}
                 <div className="flex-1 min-w-0">
                   <label className="block text-sm font-medium text-muted-foreground mb-2">
                     <span className="md:hidden">Year</span>
                     <span className="hidden md:inline">Filter by Year</span>
                   </label>
-                  <Select
-                    value={selectedYear}
-                    onValueChange={(val) => {
-                      setSelectedYear(val);
-                      setCurrentPage(1);
-                    }}
-                  >
+                  <Select value={selectedYear} onValueChange={(val) => { setSelectedYear(val); setCurrentPage(1); }}>
                     <SelectTrigger className="border-primary/20 focus:border-primary/50 h-10 md:h-auto">
                       <SelectValue placeholder="All Years" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Years</SelectItem>
                       {availableYears.map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
-                        </SelectItem>
+                        <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                {/* Sort Filter */}
                 <div className="flex-1 min-w-0">
                   <label className="block text-sm font-medium text-muted-foreground mb-2">Sort By</label>
                   <Select value={`${sortField}-${sortOrder}`} onValueChange={onSortChange}>
@@ -338,7 +284,6 @@ export default function BrowsePage() {
               </div>
             </div>
 
-            {/* Active filters display */}
             {hasActiveFilters && (
               <div className="flex flex-wrap gap-2 pt-2 border-t border-primary/10">
                 <span className="text-sm font-medium text-muted-foreground flex items-center">
@@ -352,7 +297,7 @@ export default function BrowsePage() {
                 )}
                 {selectedType !== "all" && (
                   <Badge variant="secondary" className="bg-primary/10 text-primary capitalize">
-                    Type: {selectedType.replace("image_presentation", "presentation").replace("_", " ")}
+                    Type: {formatItemType(selectedType)}
                   </Badge>
                 )}
                 {selectedYear !== "all" && (
@@ -381,11 +326,11 @@ export default function BrowsePage() {
         {loading && materials.length === 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
-              <Card key={i} className="p-6 animate-pulse">
-                <div className="h-4 w-20 bg-muted rounded mb-4" />
-                <div className="h-6 bg-muted rounded mb-3" />
-                <div className="h-4 bg-muted rounded mb-3 w-3/4" />
-                <div className="h-3 bg-muted rounded w-1/2" />
+              <Card key={i} className="p-6">
+                <Skeleton className="h-4 w-20 mb-4" />
+                <Skeleton className="h-6 mb-3" />
+                <Skeleton className="h-4 mb-3 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
               </Card>
             ))}
           </div>
@@ -427,11 +372,11 @@ export default function BrowsePage() {
                         ? "p-3 md:p-5 flex items-center gap-3 md:gap-6"
                         : "p-4 md:p-6 flex flex-col h-full"
                     }`}
-                    onClick={() => handleMaterialClick(material.ark_url)}
+                    onClick={() => openExternalLink(material.ark_url)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        handleMaterialClick(material.ark_url);
+                        openExternalLink(material.ark_url);
                       }
                     }}
                   >
@@ -439,7 +384,7 @@ export default function BrowsePage() {
                       <>
                         <div className="flex items-start justify-between mb-2 md:mb-4">
                           <Badge variant="outline" className="capitalize border-primary/25 text-primary bg-gradient-to-r from-primary/10 to-research-green/10 px-2 md:px-3 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full">
-                            {material.item_type?.replace("image_presentation", "presentation").replace("_", " ") || "document"}
+                            {formatItemType(material.item_type)}
                           </Badge>
                           <span className="text-[10px] md:text-sm text-muted-foreground font-medium">
                             {formatMaterialDate(material.date, 'year')}
@@ -460,9 +405,7 @@ export default function BrowsePage() {
                         {material.date && (
                           <div className="hidden md:flex items-center gap-2 mb-3 text-muted-foreground">
                             <Calendar className="w-4 h-4 shrink-0" />
-                            <span className="text-sm">
-                              {formatMaterialDate(material.date, 'full')}
-                            </span>
+                            <span className="text-sm">{formatMaterialDate(material.date, 'full')}</span>
                           </div>
                         )}
 
@@ -486,7 +429,7 @@ export default function BrowsePage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between mb-1 md:mb-2">
                             <Badge variant="outline" className="capitalize border-primary/30 text-primary bg-gradient-to-r from-primary/10 to-research-green/10 px-2 md:px-3 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold">
-                              {material.item_type?.replace("image_presentation", "presentation").replace("_", " ") || "document"}
+                              {formatItemType(material.item_type)}
                             </Badge>
                             <span className="text-[10px] md:text-sm text-muted-foreground font-medium">
                               {formatMaterialDate(material.date, 'year')}
@@ -523,7 +466,6 @@ export default function BrowsePage() {
               </div>
             </div>
 
-            {/* Pagination */}
             {totalCount > ITEMS_PER_PAGE && (
               <Card className="p-4 sm:p-6 bg-gradient-to-r from-background to-primary/5 border-primary/20">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">

@@ -1,18 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { ChatMessage } from "../components/chat/ChatMessage";
-import { ChatInput } from "../components/chat/ChatInput";
+import { ChatMessage } from "@/components/chat/ChatMessage";
+import { ChatInput } from "@/components/chat/ChatInput";
 import { MessageCircle, Sparkles } from "lucide-react";
-
-interface Message {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant' | 'system';
-  timestamp: Date;
-  isTyping?: boolean;
-  fullContent?: string;
-}
-
-const initialMessages: Message[] = [];
+import type { Message } from "@/lib/types";
+import { CHAT_ENDPOINT, TYPING_SPEED, MOBILE_INPUT_HEIGHT } from "@/lib/constants";
 
 const suggestionQueries = [
   "What are the latest best practices for web crawling?",
@@ -22,12 +13,10 @@ const suggestionQueries = [
 ];
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
-
-  // Keep the typing timeout ID so we can cancel it if we flush the typing early
   const typingTimeoutRef = useRef<number | null>(null);
 
   const scrollToBottom = () => {
@@ -38,7 +27,6 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages.length]); 
 
-  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
       if (typingTimeoutRef.current !== null) {
@@ -50,19 +38,17 @@ export default function ChatPage() {
 
   const handleSendMessage = async (content: string) => {
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       content,
       role: "user",
       timestamp: new Date()
     };
 
-    // If there's currently an assistant message that is typing, flush it immediately
     setMessages(prev => {
       let flushed = false;
       const updated = prev.map(msg => {
         if (!flushed && msg.role === "assistant" && msg.isTyping) {
           flushed = true;
-          // cancel the pending typing timeout (if any)
           if (typingTimeoutRef.current !== null) {
             clearTimeout(typingTimeoutRef.current);
             typingTimeoutRef.current = null;
@@ -76,30 +62,26 @@ export default function ChatPage() {
         }
         return msg;
       });
-      // Append the new user message after flushing
       return [...updated, userMessage];
     });
 
     setIsLoading(true);
 
-    // Add placeholder assistant message immediately to show "Thinking..."
-    const newMessageId = (Date.now() + 1).toString();
+    const newMessageId = crypto.randomUUID();
     const placeholderAssistantMessage: Message = {
       id: newMessageId,
       content: "",
       role: "assistant",
       timestamp: new Date(),
       isTyping: true,
-      fullContent: "" // Will be set after fetch
+      fullContent: ""
     };
     setMessages(prev => [...prev, placeholderAssistantMessage]);
 
     try {
-      const response = await fetch("/api/chat", {
+      const response = await fetch(CHAT_ENDPOINT, {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: content }),
       });
 
@@ -110,7 +92,6 @@ export default function ChatPage() {
       const data = await response.json();
       const fullText = data.response || "No response available.";
 
-      // Update the existing placeholder message with the actual content
       setMessages(prev => prev.map(msg => 
         msg.id === newMessageId 
           ? { ...msg, fullContent: fullText }
@@ -119,9 +100,7 @@ export default function ChatPage() {
       
       setIsLoading(false);
 
-      // Simulate typing: compute duration and schedule final reveal
-      const typingDuration = (fullText.length / 30) * 1000; 
-      // Clear any previous timeout reference just in case
+      const typingDuration = (fullText.length / TYPING_SPEED) * 1000; 
       if (typingTimeoutRef.current !== null) {
         clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = null;
@@ -140,7 +119,6 @@ export default function ChatPage() {
 
     } catch (error) {
       console.error("Failed to fetch assistant response:", error);
-      // If there was a typing message pending, flush it (safety)
       if (typingTimeoutRef.current !== null) {
         clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = null;
@@ -162,9 +140,7 @@ export default function ChatPage() {
 
   return (
     <div className="h-[calc(100vh-3rem)] flex flex-col bg-background relative overflow-hidden">
-      {/* Chat Container - Desktop: flex layout, Mobile: absolute positioning */}
       <div className="flex-1 flex flex-col relative min-h-0 sm:flex sm:flex-col">
-        {/* Messages Area - Mobile: absolute positioning with bottom padding for input */}
         <div 
           ref={chatContainerRef}
           className="flex-1 overflow-y-auto overscroll-behavior-y-contain sm:flex-1 sm:overflow-y-auto absolute inset-0 sm:relative"
@@ -172,13 +148,11 @@ export default function ChatPage() {
             WebkitOverflowScrolling: 'touch',
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
-            // Mobile: Add bottom padding to account for fixed input
-            paddingBottom: '120px'
+            paddingBottom: MOBILE_INPUT_HEIGHT
           }}
         >
           <div className="p-2 sm:p-4 pb-safe">
             <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
-              {/* Page Header */}
               <div className="flex items-center gap-3 px-1">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-primary to-research-green flex items-center justify-center shadow-lg flex-shrink-0">
                   <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
@@ -191,7 +165,6 @@ export default function ChatPage() {
                 </div>
               </div>
 
-              {/* Welcome Screen - Mobile Optimized */}
               {isFirstTimeUser && (
                 <div className="text-center py-6 sm:py-12 animate-in fade-in-0 slide-in-from-bottom-4">
                   <div className="w-12 h-12 sm:w-20 sm:h-20 rounded-full bg-gradient-to-r from-primary/20 to-research-green/20 flex items-center justify-center mx-auto mb-3 sm:mb-6 shadow-lg">
@@ -204,7 +177,6 @@ export default function ChatPage() {
                     I can help you explore conference materials, research papers, and presentations from the International Internet Preservation Consortium.
                   </p>
                   
-                  {/* Example questions as compact chips */}
                   <div className="max-w-2xl mx-auto px-4">
                     <p className="text-sm text-muted-foreground mb-3 text-center">
                       Try asking:
@@ -224,7 +196,6 @@ export default function ChatPage() {
                 </div>
               )}
 
-              {/* Messages */}
               {messages.map((message) => (
                 <ChatMessage
                   key={message.id}
@@ -237,7 +208,6 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Input Area - Mobile: Fixed at bottom, Desktop: Normal flex layout */}
         <div className="fixed bottom-0 left-0 right-0 sm:relative sm:flex-shrink-0 border-t border-border bg-background backdrop-blur-sm z-20">
           <div className="p-2 sm:p-4 pb-safe">
             <div className="max-w-4xl mx-auto">

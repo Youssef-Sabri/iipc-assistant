@@ -1,17 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
-import { Calendar } from "lucide-react";
+import { Clock } from "lucide-react";
+import type { Message } from "@/lib/types";
+import { TYPING_SPEED } from "@/lib/constants";
 
 interface ChatMessageProps {
-  message: {
-    id: string;
-    content: string;
-    role: "user" | "assistant" | "system";
-    timestamp: Date;
-    isTyping?: boolean;
-    fullContent?: string;
-  };
+  message: Message;
 }
 
 const urlRegex = /((https?:\/\/|www\.)[^\s<>]+)/gi;
@@ -63,22 +58,19 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const isSystem = message.role === "system";
   const isAssistant = message.role === "assistant";
 
-  // Handle typing effect for assistant messages
   useEffect(() => {
     if (message.isTyping && message.fullContent) {
       const startTime = Date.now();
-      const typingSpeed = 30; // characters per second
       const fullText = message.fullContent;
 
       const animate = () => {
         const elapsed = Date.now() - startTime;
         const charactersToShow = Math.min(
-          Math.floor((elapsed / 1000) * typingSpeed),
+          Math.floor((elapsed / 1000) * TYPING_SPEED),
           fullText.length
         );
 
-        const currentText = fullText.substring(0, charactersToShow);
-        setDisplayedContent(currentText);
+        setDisplayedContent(fullText.substring(0, charactersToShow));
 
         if (charactersToShow < fullText.length) {
           animationFrameRef.current = requestAnimationFrame(animate);
@@ -100,7 +92,6 @@ export function ChatMessage({ message }: ChatMessageProps) {
     }
   }, [message.isTyping, message.fullContent, message.content]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (animationFrameRef.current) {
@@ -125,7 +116,6 @@ export function ChatMessage({ message }: ChatMessageProps) {
           isUser && "items-end"
         )}
       >
-        {/* Avatar and Name - Mobile Compact */}
         {!isUser && (
           <div className="flex items-center gap-2 mb-1 px-1">
             <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-r from-primary to-research-green flex items-center justify-center flex-shrink-0">
@@ -137,7 +127,6 @@ export function ChatMessage({ message }: ChatMessageProps) {
           </div>
         )}
 
-        {/* Message Bubble */}
         <Card
           className={cn(
             "p-3 sm:p-6 shadow-md sm:shadow-lg transition-all duration-300 relative",
@@ -146,7 +135,6 @@ export function ChatMessage({ message }: ChatMessageProps) {
             isSystem && "bg-gradient-to-r from-muted/30 to-muted/10 text-muted-foreground border border-muted rounded-2xl"
           )}
         >
-          {/* Message Content */}
           <div
             className={cn(
               "prose prose-sm sm:prose-lg max-w-none leading-relaxed",
@@ -187,14 +175,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
           </div>
         </Card>
 
-        {/* Timestamp */}
         <div
           className={cn(
             "text-xs sm:text-sm text-muted-foreground/70 flex items-center gap-1 px-1",
             isUser ? "justify-end" : "justify-start"
           )}
         >
-          <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+          <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
           {message.timestamp.toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",

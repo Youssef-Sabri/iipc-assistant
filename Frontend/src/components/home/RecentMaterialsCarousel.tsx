@@ -3,42 +3,34 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { IIPCData } from "@/lib/supabase";
 import { formatMaterialDate } from "@/lib/date-utils";
+import { openExternalLink } from "@/lib/utils";
+import { CAROUSEL_INTERVAL, CAROUSEL_PAGE_SIZE } from "@/lib/constants";
 
 interface RecentMaterialsCarouselProps {
   allMaterials: IIPCData[];
-  handleMaterialClick: (arkUrl: string) => void;
 }
 
-export function RecentMaterialsCarousel({
-  allMaterials,
-  handleMaterialClick,
-}: RecentMaterialsCarouselProps) {
+export function RecentMaterialsCarousel({ allMaterials }: RecentMaterialsCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayedMaterials, setDisplayedMaterials] = useState<IIPCData[]>([]);
 
-  // Carousel animation effect
   useEffect(() => {
     if (!allMaterials || allMaterials.length === 0) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => {
-        const nextIndex = (prevIndex + 3) % allMaterials.length;
-        return nextIndex;
-      });
-    }, 8000); // Switch every 8 seconds
+      setCurrentIndex((prevIndex) => (prevIndex + CAROUSEL_PAGE_SIZE) % allMaterials.length);
+    }, CAROUSEL_INTERVAL);
 
     return () => clearInterval(interval);
   }, [allMaterials]);
 
-  // Update displayed materials based on current index with wrap-around
   useEffect(() => {
     if (!allMaterials || allMaterials.length === 0) return;
     const total = allMaterials.length;
-    const startIndex = currentIndex;
     const newDisplayed: IIPCData[] = [];
-    const itemsToRender = Math.min(3, total);
+    const itemsToRender = Math.min(CAROUSEL_PAGE_SIZE, total);
     for (let i = 0; i < itemsToRender; i++) {
-      newDisplayed.push(allMaterials[(startIndex + i) % total]);
+      newDisplayed.push(allMaterials[(currentIndex + i) % total]);
     }
     setDisplayedMaterials(newDisplayed);
   }, [currentIndex, allMaterials]);
@@ -53,13 +45,13 @@ export function RecentMaterialsCarousel({
         <Card
           key={`${material.id}-${currentIndex}-${idx}`}
           className="p-4 sm:p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95 cursor-pointer border border-primary/10 hover:border-primary/20 bg-gradient-to-r from-background to-primary/5 rounded-xl"
-          onClick={() => handleMaterialClick(material.ark_url)}
+          onClick={() => openExternalLink(material.ark_url)}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
-              handleMaterialClick(material.ark_url);
+              openExternalLink(material.ark_url);
             }
           }}
         >

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase, IIPCData } from '@/lib/supabase'
+import type { ItemType } from '@/lib/types'
+import { MAX_INITIAL_ITEMS } from '@/lib/constants'
 
 export const useIIPCData = () => {
   const [data, setData] = useState<IIPCData[]>([])
@@ -16,12 +18,9 @@ export const useIIPCData = () => {
           .from('iipc_data')
           .select('*')
           .order('created_at', { ascending: false })
-          .limit(100) // Limit to prevent overwhelming the UI
+          .limit(MAX_INITIAL_ITEMS)
 
-        if (fetchError) {
-          throw fetchError
-        }
-
+        if (fetchError) throw fetchError
         setData(iipcData || [])
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch data')
@@ -37,9 +36,8 @@ export const useIIPCData = () => {
   return { data, loading, error }
 }
 
-// Hook for getting item types and their counts
 export const useItemTypes = () => {
-  const [itemTypes, setItemTypes] = useState<{ type: string; count: number }[]>([])
+  const [itemTypes, setItemTypes] = useState<ItemType[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -49,7 +47,6 @@ export const useItemTypes = () => {
         setLoading(true)
         setError(null)
 
-        // Get all item types
         const { data: items, error: fetchError } = await supabase
           .from('iipc_data')
           .select('item_type')
@@ -57,14 +54,12 @@ export const useItemTypes = () => {
 
         if (fetchError) throw fetchError
 
-        // Count occurrences of each item type
         const typeCounts = new Map<string, number>()
         items?.forEach(item => {
           const type = item.item_type?.toLowerCase() || 'unknown'
           typeCounts.set(type, (typeCounts.get(type) || 0) + 1)
         })
 
-        // Convert to array and sort by count (descending)
         const sortedTypes = Array.from(typeCounts.entries())
           .map(([type, count]) => ({ type, count }))
           .sort((a, b) => b.count - a.count)
@@ -82,4 +77,4 @@ export const useItemTypes = () => {
   }, [])
 
   return { itemTypes, loading, error }
-} 
+}

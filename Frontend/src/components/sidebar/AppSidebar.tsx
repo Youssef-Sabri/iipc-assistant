@@ -20,8 +20,8 @@ import {
   SidebarFooter
 } from "@/components/ui/sidebar";
 
-
 import iipcLogo from "@/assets/iipc-logo.svg";
+import { APP_VERSION } from "@/lib/constants";
 
 const mainNavItems = [
   { title: "Home", url: "/", icon: Home },
@@ -38,7 +38,6 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-r border-border/50 shadow-2xl backdrop-blur-xl bg-sidebar/95 supports-[backdrop-filter]:bg-sidebar/80">
-      {/* Mobile overlay backdrop for better visibility */}
       <div className="absolute inset-0 bg-sidebar/90 backdrop-blur-xl lg:hidden"></div>
       
       <SidebarHeader className="relative z-10 p-6 border-b border-border/30 bg-gradient-to-r from-sidebar/95 to-primary/5 dark:to-primary/10 backdrop-blur-sm">
@@ -65,7 +64,6 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="relative z-10 flex-1 overflow-y-auto bg-sidebar/90 backdrop-blur-sm">
-        {/* Main Navigation */}
         <SidebarGroup className="px-3 py-6">
           <SidebarGroupLabel className="font-semibold text-sm mb-4 px-3 text-muted-foreground uppercase tracking-wide">
             Navigation
@@ -114,7 +112,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Quick Stats Section (if not collapsed) */}
         {!collapsed && (
           <SidebarGroup className="px-3 pb-6">
             <div className="mx-3 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-research-green/10 border border-primary/20 backdrop-blur-sm bg-sidebar-bg/80 shadow-lg">
@@ -136,7 +133,7 @@ export function AppSidebar() {
         {!collapsed ? (
           <div className="px-3 py-2 rounded-lg bg-gradient-to-r from-primary/10 to-research-green/10 backdrop-blur-sm border border-primary/10 bg-sidebar-bg/80">
             <div className="text-xs text-muted-foreground font-medium text-center">
-              IIPC Assistant v1.0
+              IIPC Assistant {APP_VERSION}
             </div>
           </div>
         ) : (

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   MessageCircle,
   Archive,
@@ -12,20 +13,15 @@ import {
 import iipcLogo from "@/assets/iipc-logo.svg";
 import { useItemTypes, useIIPCData } from "@/hooks/use-iipc-data";
 import { RecentMaterialsCarousel } from "@/components/home/RecentMaterialsCarousel";
+import { openExternalLink, formatItemType } from "@/lib/utils";
+import { EXTERNAL_URLS } from "@/lib/constants";
 
 export default function HomePage() {
   const { itemTypes, loading: itemTypesLoading, error: itemTypesError } = useItemTypes();
   const { data: materials, loading: materialsLoading, error: materialsError } = useIIPCData();
 
-  const handleMaterialClick = (arkUrl: string) => {
-    if (arkUrl) {
-      window.open(arkUrl, "_blank", "noopener,noreferrer");
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 overflow-x-hidden">
-      {/* Hero Section */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-16">
           <div className="flex flex-col sm:flex-row items-center justify-center mb-8 animate-in fade-in-0 slide-in-from-bottom-4 gap-6 sm:gap-12">
@@ -38,7 +34,6 @@ export default function HomePage() {
               <div className="absolute -inset-2 bg-gradient-to-r from-primary/30 to-research-green/30 rounded-full blur-xl -z-10"></div>
             </div>
 
-            {/* Centered title and subtitle */}
             <div className="text-center max-w-xl">
               <h1 className="text-3xl sm:text-5xl font-bold mb-3 bg-gradient-to-r from-primary to-research-green bg-clip-text text-transparent mx-auto">
                 IIPC Assistant
@@ -81,11 +76,9 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Main Content Grid */}
         <div className="mb-20 px-4 sm:px-0 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             
-            {/* Left Column: Available Item Types */}
             <div>
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Available Item Types</h2>
@@ -102,14 +95,10 @@ export default function HomePage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {itemTypesLoading ? (
-                  // Loading skeleton
                   Array.from({ length: 6 }).map((_, index) => (
-                    <Card
-                      key={index}
-                      className="p-6 border-0 bg-gradient-to-r from-background to-muted/20 rounded-xl"
-                    >
-                      <div className="h-6 bg-muted animate-pulse rounded mb-3" />
-                      <div className="h-8 bg-muted animate-pulse rounded" />
+                    <Card key={index} className="p-6 border-0 bg-gradient-to-r from-background to-muted/20 rounded-xl">
+                      <Skeleton className="h-6 w-2/3 mb-3" />
+                      <Skeleton className="h-8 w-1/3" />
                     </Card>
                   ))
                 ) : itemTypesError ? (
@@ -128,12 +117,10 @@ export default function HomePage() {
                       key={itemType.type}
                       className="block"
                     >
-                      <Card
-                        className="p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95 cursor-pointer border border-primary/10 hover:border-primary/20 bg-gradient-to-r from-background to-primary/5 rounded-xl h-full"
-                      >
+                      <Card className="p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95 cursor-pointer border border-primary/10 hover:border-primary/20 bg-gradient-to-r from-background to-primary/5 rounded-xl h-full">
                         <div className="flex items-center justify-between mb-3">
                           <h3 className="font-bold text-foreground capitalize text-lg">
-                            {itemType.type.replace("image_presentation", "presentation").replace("_", " ")}
+                            {formatItemType(itemType.type)}
                           </h3>
                           <div className="w-8 h-8 bg-gradient-to-r from-primary/20 to-research-green/20 rounded-full flex items-center justify-center">
                             <div className="w-2 h-2 bg-primary rounded-full"></div>
@@ -148,7 +135,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Column: Recent Materials */}
             <div>
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Recent Materials</h2>
@@ -166,17 +152,14 @@ export default function HomePage() {
               {materialsLoading ? (
                 <div className="space-y-4">
                   {Array.from({ length: 3 }).map((_, i) => (
-                    <Card
-                      key={i}
-                      className="p-4 sm:p-6 border-0 bg-gradient-to-r from-background to-muted/20 rounded-xl"
-                    >
+                    <Card key={i} className="p-4 sm:p-6 border-0 bg-gradient-to-r from-background to-muted/20 rounded-xl">
                       <div className="flex items-start justify-between mb-3">
-                        <div className="h-6 w-20 bg-muted animate-pulse rounded" />
-                        <div className="h-4 w-12 bg-muted animate-pulse rounded" />
+                        <Skeleton className="h-6 w-20" />
+                        <Skeleton className="h-4 w-12" />
                       </div>
-                      <div className="h-6 bg-muted animate-pulse rounded mb-2" />
-                      <div className="h-4 bg-muted animate-pulse rounded mb-3 w-3/4" />
-                      <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+                      <Skeleton className="h-6 mb-2" />
+                      <Skeleton className="h-4 mb-3 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
                     </Card>
                   ))}
                 </div>
@@ -186,20 +169,14 @@ export default function HomePage() {
                   <div className="text-sm mt-2">{materialsError}</div>
                 </div>
               ) : (
-                <RecentMaterialsCarousel
-                  allMaterials={materials}
-                  handleMaterialClick={handleMaterialClick}
-                />
+                <RecentMaterialsCarousel allMaterials={materials} />
               )}
             </div>
 
           </div>
         </div>
 
-        {/* CTA Section */}
-        <Card
-          className="p-8 sm:p-12 text-center bg-gradient-to-r from-primary/10 to-research-green/10 border-primary/30 rounded-2xl max-w-4xl mx-auto"
-        >
+        <Card className="p-8 sm:p-12 text-center bg-gradient-to-r from-primary/10 to-research-green/10 border-primary/30 rounded-2xl max-w-4xl mx-auto">
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-r from-primary/20 to-research-green/20 flex items-center justify-center mx-auto mb-6 sm:mb-8 shadow-lg">
             <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
           </div>
@@ -232,7 +209,7 @@ export default function HomePage() {
               className="w-full sm:w-auto shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 bg-gradient-to-r from-primary to-research-green text-white border-0 px-10 py-4 text-lg font-semibold"
             >
               <a
-                href="https://netpreserve.org/"
+                href={EXTERNAL_URLS.IIPC_HOME}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center"

@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Send, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MAX_MESSAGE_LENGTH, MAX_TEXTAREA_HEIGHT } from "@/lib/constants";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -25,7 +26,6 @@ export function ChatInput({
     if (message.trim() && !isLoading) {
       onSendMessage(message.trim());
       setMessage("");
-      // Reset textarea height
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
@@ -39,24 +39,13 @@ export function ChatInput({
     }
   };
 
-  // Auto-resize textarea
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = 'auto';
-      const scrollHeight = textarea.scrollHeight;
-      const maxHeight = 120; // Max height in pixels
-      textarea.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+      textarea.style.height = Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT) + 'px';
     }
   }, [message]);
-
-  const handleFocus = () => {
-    setIsFocused(true);
-  };
-
-  const handleBlur = () => {
-    setIsFocused(false);
-  };
 
   return (
     <Card className={cn(
@@ -64,16 +53,16 @@ export function ChatInput({
       isFocused && "shadow-xl ring-2 ring-primary/20"
     )}>
       <form onSubmit={handleSubmit} className="flex items-end gap-2 p-3 sm:p-4">
-        {/* Text Input */}
         <div className="flex-1 relative">
           <Textarea
             ref={textareaRef}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             placeholder={placeholder}
+            maxLength={MAX_MESSAGE_LENGTH}
             disabled={isLoading}
             className={cn(
               "min-h-[44px] max-h-[120px] resize-none border-0 bg-muted/30 focus:bg-background",
@@ -81,21 +70,16 @@ export function ChatInput({
               "focus:ring-2 focus:ring-primary/20 focus:border-transparent",
               "scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
             )}
-            style={{
-              fontSize: '16px', // Prevents iOS zoom
-              lineHeight: '1.4'
-            }}
+            style={{ fontSize: '16px', lineHeight: '1.4' }}
           />
           
-          {/* Character count - Desktop only */}
           {message.length > 0 && (
             <div className="absolute bottom-2 left-3 text-xs text-muted-foreground/60 hidden sm:block">
-              {message.length}/2000
+              {message.length}/{MAX_MESSAGE_LENGTH}
             </div>
           )}
         </div>
 
-        {/* Send Button */}
         <Button 
           type="submit" 
           disabled={!message.trim() || isLoading}
@@ -121,7 +105,6 @@ export function ChatInput({
         </Button>
       </form>
 
-      {/* Desktop: Keyboard shortcuts */}
       <div className="hidden sm:block px-4 pb-3">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center gap-4">
@@ -138,7 +121,7 @@ export function ChatInput({
           </div>
           {message.length > 0 && (
             <div className="text-muted-foreground/60">
-              {message.length}/2000
+              {message.length}/{MAX_MESSAGE_LENGTH}
             </div>
           )}
         </div>

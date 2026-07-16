@@ -102,9 +102,6 @@ An AI-powered research assistant for exploring IIPC Web Archiving conference mat
 
    # Local API configurations
    CHAT_API_URL=
-
-   # Backend Authentication
-   BACKEND_API_KEY=
    ```
 
 3. **Frontend setup**
@@ -145,7 +142,6 @@ This container hosts the RAG queries, manages Gemini/Groq completions, and holds
   * `GROQ_API_KEY` — Groq API key
   * `EMBEDDING_API_URL` — Deployed Hugging Face Embedding API endpoint URL
   * `HF_TOKEN` — Hugging Face fine-grained access token (with `read` permissions to query your private embedding space)
-  * `BACKEND_API_KEY` — Shared secret for authenticating incoming chat requests
 
 #### 2. Embedding API (FastAPI + BGE-M3 model)
 This container hosts local PyTorch inference for the `BAAI/bge-m3` model to compute query vectors locally without rate limits.
@@ -156,11 +152,11 @@ This container hosts local PyTorch inference for the `BAAI/bge-m3` model to comp
 
 The frontend is deployed on **Vercel** as a single-page application with a serverless proxy function.
 
-* **Serverless Proxy** (`Frontend/api/chat.js`): Proxies `POST /api/chat` requests to the deployed Chat Backend. Forwards a server-side API key for backend authentication.
+* **Serverless Proxy** (`Frontend/api/chat.js`): Proxies `POST /api/chat` requests to the deployed Chat Backend. Forwards `HF_TOKEN` for server-side gateway authentication.
 * **Security Headers**: Configured in `Frontend/vercel.json` — includes CSP, HSTS, X-Frame-Options: DENY, and other hardening headers.
 * **Environment Variables**: Set the following in Vercel project settings:
-  * `CHAT_API_URL` — Deployed Chat Backend HF Space endpoint
-  * `BACKEND_API_KEY` — Shared secret for backend authentication (must match the backend's `BACKEND_API_KEY`)
+  * `CHAT_API_URL` — Deployed Chat Backend HF Space endpoint (`https://<username>-<space>.hf.space`)
+  * `HF_TOKEN` — Hugging Face user token for private space access
 
 ---
 

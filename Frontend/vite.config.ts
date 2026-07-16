@@ -20,9 +20,8 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => path.replace(/^\/api/, ""),
           configure: (proxy) => {
             proxy.on("proxyReq", (proxyReq) => {
-              if (env.HF_TOKEN) {
-                const token = env.HF_TOKEN.trim();
-                proxyReq.setHeader("Authorization", `Bearer ${token}`);
+              if (env.BACKEND_API_KEY) {
+                proxyReq.setHeader("Authorization", `Bearer ${env.BACKEND_API_KEY.trim()}`);
               }
             });
           },

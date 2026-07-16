@@ -4,6 +4,7 @@ import time
 import pickle
 import logging
 import traceback
+import secrets
 from collections import defaultdict
 
 import numpy as np
@@ -61,6 +62,7 @@ REMOTE_EMBEDDING_API = os.getenv("EMBEDDING_API_URL", "").strip() or None
 HF_TOKEN = os.getenv("HF_TOKEN", "").strip() or None
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip() or None
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip() or None
+BACKEND_API_KEY = os.getenv("BACKEND_API_KEY", "").strip() or None
 
 GEMINI_MODEL = "gemini-3.1-flash-lite"
 GROQ_FALLBACK_MODELS = ["meta-llama/llama-4-scout-17b-16e-instruct"]
@@ -307,6 +309,11 @@ def ping():
 @app.route("/chat", methods=["POST"])
 def chat():
     try:
+        if BACKEND_API_KEY:
+            auth_header = request.headers.get("Authorization", "")
+            if not auth_header.startswith("Bearer ") or not secrets.compare_digest(auth_header[7:], BACKEND_API_KEY):
+                return jsonify({"error": "Unauthorized: Invalid or missing API key."}), 401
+
         data = request.get_json()
         if not isinstance(data, dict):
             return jsonify({"error": "Invalid request payload. Expected JSON object."}), 400

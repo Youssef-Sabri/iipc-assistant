@@ -21,29 +21,29 @@ An AI-powered research assistant for exploring IIPC Web Archiving conference mat
 ## Architecture
 
 ```
-                        ┌──────────────────┐
-                        │  React Frontend   │
-                        │  (Vite + TS +     │
-                        │   Tailwind)       │
-                        └──────┬──────┬─────┘
-                               │      │
-                     HTTP POST │      │ Supabase
-                      /chat    │      │ (materials
-                               │      │  metadata)
-                               ▼      ▼
-                        ┌──────────────────┐
-                        │  Flask Backend   │
-                        │  (RAG Pipeline)  │
-                        └──┬───────┬───────┘
-                           │       │
-                     FAISS │       │ Gemini /
-                     (vec. │       │ Groq API
-                     index)│       │ (LLM)
-                           ▼       ▼
-                    ┌──────────┐ ┌──────────┐
-                    │Embeddings│ │  LLM     │
-                    │  .pkl    │ │ Response │
-                    └──────────┘ └──────────┘
+                         ┌───────────────────────┐
+                         │  Vercel               │
+                         │  (SPA + /api/chat     │
+                         │   serverless proxy)   │
+                         └───┬──────────┬────────┘
+                             │          │
+                   /api/chat │          │ Supabase
+                   (API key  │          │ (materials
+                    proxy)   │          │  metadata)
+                             ▼          ▼
+                       ┌──────────────────┐
+                       │  Flask Backend   │
+                       │  (RAG Pipeline)  │
+                       └──┬───────┬───────┘
+                          │       │
+                    FAISS │       │ Gemini /
+                    (vec. │       │ Groq API
+                    index)│       │ (LLM)
+                          ▼       ▼
+                   ┌──────────┐ ┌──────────┐
+                   │Embeddings│ │  LLM     │
+                   │  .pkl    │ │ Response │
+                   └──────────┘ └──────────┘
 ```
 
 ### Frontend Stack
@@ -52,7 +52,7 @@ An AI-powered research assistant for exploring IIPC Web Archiving conference mat
 - **Tailwind CSS** with shadcn/ui components
 - **Supabase** for structured data and real-time queries
 - **React Router** for client-side routing
-- **TanStack Query** for data fetching
+- **Vercel** for deployment with serverless proxy
 
 ### Backend Stack
 - **Flask** REST API with CORS
@@ -94,8 +94,6 @@ An AI-powered research assistant for exploring IIPC Web Archiving conference mat
 
     # Hugging Face Settings
     EMBEDDING_API_URL=
-    HF_USERNAME=
-    HF_DATASET_NAME=
     HF_TOKEN=
 
    # Supabase Credentials
@@ -104,6 +102,9 @@ An AI-powered research assistant for exploring IIPC Web Archiving conference mat
 
    # Local API configurations
    CHAT_API_URL=
+
+   # Backend Authentication
+   BACKEND_API_KEY=
    ```
 
 3. **Frontend setup**
@@ -144,17 +145,42 @@ This container hosts the RAG queries, manages Gemini/Groq completions, and holds
   * `GROQ_API_KEY` — Groq API key
   * `EMBEDDING_API_URL` — Deployed Hugging Face Embedding API endpoint URL
   * `HF_TOKEN` — Hugging Face fine-grained access token (with `read` permissions to query your private embedding space)
+  * `BACKEND_API_KEY` — Shared secret for authenticating incoming chat requests
 
 #### 2. Embedding API (FastAPI + BGE-M3 model)
 This container hosts local PyTorch inference for the `BAAI/bge-m3` model to compute query vectors locally without rate limits.
 * **Hugging Face Setup**: Create a new Space using the **Docker** SDK, upload files from [Backend/huggingface_space](file:///c:/Users/youss/Desktop/Projects/IIPC-Assistant/Backend/huggingface_space), and expose port `7860`.
 * The container creates a model cache directory at `/app/hf_cache` to store the tokenizer and model weights safely.
 
+### Deployment on Vercel
+
+The frontend is deployed on **Vercel** as a single-page application with a serverless proxy function.
+
+* **Serverless Proxy** (`Frontend/api/chat.js`): Proxies `POST /api/chat` requests to the deployed Chat Backend. Forwards a server-side API key for backend authentication.
+* **Security Headers**: Configured in `Frontend/vercel.json` — includes CSP, HSTS, X-Frame-Options: DENY, and other hardening headers.
+* **Environment Variables**: Set the following in Vercel project settings:
+  * `CHAT_API_URL` — Deployed Chat Backend HF Space endpoint
+  * `BACKEND_API_KEY` — Shared secret for backend authentication (must match the backend's `BACKEND_API_KEY`)
+
 ---
+
+### `POST /api/chat`
+
+Client-facing endpoint. In production, this hits the Vercel serverless proxy which forwards to the backend with an API key.
+
+**Request:**
+```json
+{ "query": "What are best practices for web crawling?" }
+```
+
+**Response:**
+```json
+{ "response": "Based on IIPC conference materials..." }
+```
 
 ### `POST /chat`
 
-Send a natural language query and receive a contextual response grounded in IIPC materials.
+Direct backend endpoint (used in local development via Vite proxy). Requires `Authorization: Bearer <BACKEND_API_KEY>` header if `BACKEND_API_KEY` is set.
 
 **Request:**
 ```json
@@ -180,7 +206,11 @@ iipc-assistant/
 │   │   └── requirements.txt
 │   └── IIPC_data/                # Created & uploaded directly to HF Space (gitignored)
 ├── Frontend/
+│   ├── api/
+│   │   └── chat.js               # Vercel serverless proxy (API key forwarding + origin check)
 │   ├── src/
+│   │   ├── App.tsx               # Router definition (5 routes)
+│   │   ├── main.tsx              # Entry point
 │   │   ├── components/
 │   │   │   ├── browse/           # ViewModeToggle for grid/list views
 │   │   │   ├── chat/             # ChatInput, ChatMessage
@@ -190,10 +220,12 @@ iipc-assistant/
 │   │   ├── pages/                # Index, Chat, Browse, About, NotFound
 │   │   ├── hooks/                # use-iipc-data, use-mobile
 │   │   ├── lib/                  # supabase client, utils (cn), date-utils
+│   │   ├── styles/               # Global CSS (index.css)
 │   │   └── assets/               # iipc-logo.svg
 │   ├── index.html
 │   ├── package.json
 │   ├── vite.config.ts
+│   ├── vercel.json               # Vercel deployment config (security headers, SPA rewrites)
 │   ├── tailwind.config.ts
 │   └── tsconfig*.json
 ├── iipc_rag_pipeline/            # Jupyter notebooks for data processing

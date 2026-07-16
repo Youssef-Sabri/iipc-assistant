@@ -1,5 +1,3 @@
-import crypto from "crypto";
-
 export default async function handler(req, res) {
   // 1. Origin and Referer checks to prevent cross-site requests
   const origin = req.headers.origin || "";
@@ -17,30 +15,6 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: "Access denied: Unauthorized origin" });
   }
 
-  // 2. Custom App Signature check (time-locked dynamic signature)
-  const timestamp = req.headers["x-app-timestamp"];
-  const signature = req.headers["x-app-signature"];
-
-  if (!timestamp || !signature) {
-    return res.status(403).json({ error: "Access denied: Missing signature or timestamp" });
-  }
-
-  // Verify time window (must be within 30 seconds)
-  const timeDiff = Math.abs(Date.now() - parseInt(timestamp, 10));
-  if (isNaN(timeDiff) || timeDiff > 30000) {
-    return res.status(403).json({ error: "Access denied: Signature has expired or timestamp is invalid" });
-  }
-
-  // Verify signature matching
-  const expectedSignature = crypto
-    .createHash("sha256")
-    .update(timestamp + "-iipc-dynamic-salt-2026")
-    .digest("hex");
-
-  if (signature !== expectedSignature) {
-    return res.status(403).json({ error: "Access denied: Invalid application signature" });
-  }
-
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -51,7 +25,7 @@ export default async function handler(req, res) {
   }
 
   const backendUrl = process.env.CHAT_API_URL;
-  const hfToken = process.env.HF_TOKEN;
+  const backendApiKey = process.env.BACKEND_API_KEY;
 
   if (!backendUrl) {
     return res.status(500).json({ error: "Backend URL not configured" });
@@ -59,8 +33,8 @@ export default async function handler(req, res) {
 
   try {
     const headers = { "Content-Type": "application/json" };
-    if (hfToken) {
-      headers["Authorization"] = `Bearer ${hfToken}`;
+    if (backendApiKey) {
+      headers["Authorization"] = `Bearer ${backendApiKey}`;
     }
 
     const response = await fetch(`${backendUrl}/chat`, {

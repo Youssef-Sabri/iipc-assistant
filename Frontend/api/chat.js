@@ -54,8 +54,7 @@ export default async function handler(req, res) {
       console.error(`Backend returned non-JSON response (Status ${response.status}):`, responseText.slice(0, 500));
       return res.status(response.status >= 400 ? response.status : 502).json({ 
         error: "Backend service returned an invalid non-JSON response",
-        status: response.status,
-        details: responseText.slice(0, 200)
+        status: response.status
       });
     }
 

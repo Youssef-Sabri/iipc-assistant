@@ -15,6 +15,11 @@ ENV HF_HOME=/app/hf_cache
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Pre-download BAAI/bge-m3 model during build so startup is instant (0s cold start)
+RUN python3 -c "from transformers import AutoTokenizer, AutoModel; \
+    AutoTokenizer.from_pretrained('BAAI/bge-m3', cache_dir='/app/hf_cache'); \
+    AutoModel.from_pretrained('BAAI/bge-m3', cache_dir='/app/hf_cache')"
+
 # Copy application files
 COPY . .
 

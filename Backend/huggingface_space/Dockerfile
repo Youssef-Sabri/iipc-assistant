@@ -1,29 +1,40 @@
-FROM python:3.9-slim
+FROM python:3.10-slim
+
+# Prevent Python from writing .pyc files and buffering output
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Set Hugging Face cache directory and ensure it's consistent with app
+ENV HF_HOME=/app/hf_cache
+ENV TRANSFORMERS_CACHE=/app/hf_cache
 
 WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
+    git \
     && rm -rf /var/lib/apt/lists/*
-
-# Create cache directory for HuggingFace models
-RUN mkdir -p /app/hf_cache && chmod 777 /app/hf_cache
-ENV HF_HOME=/app/hf_cache
 
 # Copy and install python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pre-download BAAI/bge-m3 model during build so startup is instant (0s cold start)
-RUN python3 -c "from transformers import AutoTokenizer, AutoModel; \
+# Pre-download BAAI/bge-m3 model and tokenizer during build
+RUN python -c "from transformers import AutoTokenizer, AutoModel; \
     AutoTokenizer.from_pretrained('BAAI/bge-m3', cache_dir='/app/hf_cache'); \
     AutoModel.from_pretrained('BAAI/bge-m3', cache_dir='/app/hf_cache')"
+
+# Set offline mode for runtime (0s startup, no external network calls or rate limits)
+ENV HF_HUB_OFFLINE=1
+ENV TRANSFORMERS_OFFLINE=1
 
 # Copy application files
 COPY . .
 
-# Hugging Face Spaces runs on port 7860
-EXPOSE 7860
+# Ensure cache folder exists and has full read/write permissions for HF unprivileged user
+RUN mkdir -p /app/hf_cache && chmod -R 777 /app/hf_cache
 
+# Expose API port and start the FastAPI server
+EXPOSE 7860
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]

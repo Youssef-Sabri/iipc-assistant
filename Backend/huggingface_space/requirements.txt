@@ -1,7 +1,8 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
 fastapi
 uvicorn
 pydantic
 transformers
-torch --index-url https://download.pytorch.org/ml/cpu
 requests
 python-dotenv

@@ -37,4 +37,4 @@ RUN mkdir -p /app/hf_cache && chmod -R 777 /app/hf_cache
 
 # Expose API port and start the FastAPI server
 EXPOSE 7860
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]

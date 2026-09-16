@@ -88,7 +88,10 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip() or None
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip() or None
 
 GEMINI_MODEL = "gemini-3.1-flash-lite"
-GROQ_FALLBACK_MODELS = ["meta-llama/llama-4-scout-17b-16e-instruct"]
+GROQ_FALLBACK_MODELS = [
+    "qwen/qwen3.8-27b",
+    "openai/gpt-oss-20b"
+]
 GEMINI_TIMEOUT = 20
 EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "BAAI/bge-m3")
 

@@ -90,13 +90,12 @@ An AI-powered research assistant for exploring IIPC Web Archiving conference mat
    Create a `.env` file at the project root with the following variables:
 
    ```env
-   # API Keys
+   # AI API Keys
    GEMINI_API_KEY=
    GROQ_API_KEY=
 
-   # Hugging Face Settings
+   # Hugging Face Settings (Required by Frontend proxy if HF Space is Private)
    HF_TOKEN=
-
 
    # Supabase Credentials
    VITE_SUPABASE_URL=
@@ -143,19 +142,17 @@ The **Backend** is deployed as a single, all-in-one Docker-based Hugging Face Sp
    Add the following variables in your Space's **Settings > Variables and secrets** tab:
    * `GEMINI_API_KEY` — Google Gemini API key
    * `GROQ_API_KEY` — Groq API key
-   * `HF_TOKEN` — *(Optional)* Hugging Face access token for bearer authentication
-
-
+   *(Note: `HF_TOKEN` is NOT needed inside the Space itself!)*
 
 ### Deployment on Vercel
 
 The frontend is deployed on **Vercel** as a single-page application with a serverless proxy function.
 
-* **Serverless Proxy** (`Frontend/api/chat.js`): Proxies `POST /api/chat` requests to the deployed Chat Backend. Forwards `HF_TOKEN` for server-side gateway authentication.
+* **Serverless Proxy** (`Frontend/api/chat.js`): Proxies `POST /api/chat` requests to the deployed Chat Backend. Forwards `HF_TOKEN` if your Hugging Face Space is set to **Private**.
 * **Security Headers**: Configured in `Frontend/vercel.json` — includes CSP, HSTS, X-Frame-Options: DENY, and other hardening headers.
 * **Environment Variables**: Set the following in Vercel project settings:
   * `CHAT_API_URL` — Deployed Chat Backend HF Space endpoint (`https://<username>-<space>.hf.space`)
-  * `HF_TOKEN` — Hugging Face user token for private space access
+  * `HF_TOKEN` — *(Required only if Space is Private)* Hugging Face access token for gateway authentication
 
 ---
 

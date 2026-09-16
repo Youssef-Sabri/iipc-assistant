@@ -9,7 +9,6 @@ import time
 import pickle
 import logging
 import traceback
-import secrets
 from collections import defaultdict
 
 import numpy as np
@@ -19,6 +18,7 @@ from transformers import AutoTokenizer, AutoModel, logging as hf_logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from google import genai
+from google.genai import types
 from groq import Groq
 from dotenv import load_dotenv
 
@@ -68,9 +68,12 @@ for noisy_lib in [
     "huggingface_hub",
     "transformers",
     "torch",
-    "werkzeug"
+    "werkzeug",
+    "google",
+    "google_genai",
+    "google.genai"
 ]:
-    logging.getLogger(noisy_lib).setLevel(logging.WARNING)
+    logging.getLogger(noisy_lib).setLevel(logging.ERROR)
 
 hf_logging.set_verbosity_error()
 
@@ -81,7 +84,6 @@ if not os.path.exists(PKL_PATH):
     if os.path.exists(parent_path):
         PKL_PATH = parent_path
 
-HF_TOKEN = os.getenv("HF_TOKEN", "").strip() or None
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip() or None
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip() or None
 
@@ -126,8 +128,8 @@ tokenizer = None
 embedding_model = None
 
 try:
-    tokenizer = AutoTokenizer.from_pretrained(EMBEDDING_MODEL_NAME, token=HF_TOKEN)
-    embedding_model = AutoModel.from_pretrained(EMBEDDING_MODEL_NAME, token=HF_TOKEN)
+    tokenizer = AutoTokenizer.from_pretrained(EMBEDDING_MODEL_NAME)
+    embedding_model = AutoModel.from_pretrained(EMBEDDING_MODEL_NAME)
     embedding_model.eval()
     logger.info(f"Embedding model ready: {EMBEDDING_MODEL_NAME}")
 except Exception as e:
@@ -313,6 +315,9 @@ def generate_response(query: str, context_docs: list):
         response = genai_client.models.generate_content(
             model=GEMINI_MODEL,
             contents=prompt,
+            config=types.GenerateContentConfig(
+                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
+            ),
         )
         logger.info(f"[LLM] Primary response generated via {GEMINI_MODEL} (Gemini)")
         return response.text, GEMINI_MODEL
@@ -378,12 +383,6 @@ def embed():
 def chat():
     start = time.time()
     try:
-        if HF_TOKEN:
-            auth_header = request.headers.get("Authorization", "")
-            if not auth_header.startswith("Bearer ") or not secrets.compare_digest(auth_header[7:], HF_TOKEN):
-                logger.warning("[POST /chat] Unauthorized request rejected.")
-                return jsonify({"error": "Unauthorized: Invalid or missing token."}), 401
-
         data = request.get_json(silent=True)
         if not isinstance(data, dict):
             return jsonify({"error": "Invalid request payload. Expected JSON object."}), 400

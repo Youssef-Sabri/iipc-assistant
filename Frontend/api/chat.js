@@ -37,7 +37,7 @@ export default async function handler(req, res) {
   try {
     const headers = { "Content-Type": "application/json" };
     if (hfToken) {
-      headers["Authorization"] = `Bearer ${hfToken}`;
+      headers["Authorization"] = `Bearer ${hfToken.trim()}`;
     }
 
     const response = await fetch(targetUrl, {

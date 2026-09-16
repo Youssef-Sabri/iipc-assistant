@@ -13,7 +13,7 @@ import {
 import iipcLogo from "@/assets/iipc-logo.svg";
 import { useItemTypes, useIIPCData } from "@/hooks/use-iipc-data";
 import { RecentMaterialsCarousel } from "@/components/home/RecentMaterialsCarousel";
-import { openExternalLink, formatItemType } from "@/lib/utils";
+import { formatItemType } from "@/lib/utils";
 import { EXTERNAL_URLS } from "@/lib/constants";
 
 export default function HomePage() {

@@ -21,9 +21,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  if (!req.body || typeof req.body !== "object") {
+    return res.status(400).json({ error: "Invalid request payload. Expected JSON object." });
+  }
+
   const { query } = req.body;
-  if (!query) {
-    return res.status(400).json({ error: "Missing query" });
+  if (!query || typeof query !== "string" || !query.trim()) {
+    return res.status(400).json({ error: "Query is required and must be a non-empty string." });
+  }
+
+  const trimmedQuery = query.trim();
+  if (trimmedQuery.length > 2000) {
+    return res.status(400).json({ error: "Query exceeds maximum limit of 2000 characters." });
   }
 
   const backendUrl = process.env.CHAT_API_URL;
@@ -45,7 +54,7 @@ export default async function handler(req, res) {
     const response = await fetch(targetUrl, {
       method: "POST",
       headers,
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ query: trimmedQuery }),
     });
 
     const responseText = await response.text();

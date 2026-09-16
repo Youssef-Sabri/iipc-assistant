@@ -7,7 +7,8 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => {
   // Load env file from the parent directory (since envDir is "../")
   const env = loadEnv(mode, path.resolve(__dirname, "../"), "");
-  const backendUrl = env.CHAT_API_URL;
+  const rawBackendUrl = env.CHAT_API_URL || "http://localhost:7860";
+  const backendTarget = rawBackendUrl.replace(/\/+$/, "").replace(/\/chat$/, "");
 
   return {
     server: {
@@ -15,7 +16,7 @@ export default defineConfig(({ mode }) => {
       port: 8080,
       proxy: {
         "/api": {
-          target: backendUrl,
+          target: backendTarget,
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ""),
           configure: (proxy) => {

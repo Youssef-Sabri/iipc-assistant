@@ -158,7 +158,7 @@ The frontend is deployed on **Vercel** as a single-page application with a serve
 
 ### `POST /api/chat`
 
-Client-facing endpoint. In production, this hits the Vercel serverless proxy which forwards to the backend with an API key.
+Client-facing endpoint. In production, this hits the Vercel serverless proxy (`Frontend/api/chat.js`) which forwards to the backend (and attaches `HF_TOKEN` Bearer authentication if your Hugging Face Space is Private).
 
 **Request:**
 ```json
@@ -172,7 +172,7 @@ Client-facing endpoint. In production, this hits the Vercel serverless proxy whi
 
 ### `POST /chat`
 
-Direct backend endpoint (used in local development via Vite proxy). Requires `Authorization: Bearer <BACKEND_API_KEY>` header if `BACKEND_API_KEY` is set.
+Direct backend endpoint hosted on Flask. In local development, the Vite dev proxy forwards `/api/chat` calls here.
 
 **Request:**
 ```json

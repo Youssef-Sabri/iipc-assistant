@@ -6,9 +6,11 @@ export default async function handler(req, res) {
   const isAllowedOrigin = 
     origin.includes("localhost") || 
     origin.includes("127.0.0.1") || 
+    origin.endsWith(".vercel.app") ||
     origin.includes("iipc-assistant.vercel.app") ||
     referer.includes("localhost") ||
     referer.includes("127.0.0.1") ||
+    referer.includes(".vercel.app") ||
     referer.includes("iipc-assistant.vercel.app");
 
   if (!isAllowedOrigin) {

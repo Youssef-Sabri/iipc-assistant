@@ -7,3 +7,5 @@ google-genai
 groq
 gunicorn
 requests
+torch
+transformers

@@ -58,10 +58,12 @@ An AI-powered research assistant for exploring IIPC Web Archiving conference mat
 - **Flask** REST API with CORS
 - **FAISS** for vector similarity search
 - **Gemini / Groq** for LLM response generation
-- **BGE-M3** embedding model via remote API
+- **BGE-M3** embedding model (in-process PyTorch inference)
+
 - **Docker** support for containerized deployment
 
 ## Quick Start
+
 
 ### Prerequisites
 
@@ -92,9 +94,9 @@ An AI-powered research assistant for exploring IIPC Web Archiving conference mat
    GEMINI_API_KEY=
    GROQ_API_KEY=
 
-    # Hugging Face Settings
-    EMBEDDING_API_URL=
-    HF_TOKEN=
+   # Hugging Face Settings
+   HF_TOKEN=
+
 
    # Supabase Credentials
    VITE_SUPABASE_URL=
@@ -130,23 +132,20 @@ The UI runs on `http://localhost:8080`.
 
 ### Deployment on Hugging Face Spaces
 
-Both the **Chat Backend** and the **Embedding API** are designed to be deployed as Docker-based Hugging Face Spaces.
+The **Backend** is deployed as a single, all-in-one Docker-based Hugging Face Space hosting the Flask RAG pipeline, FAISS vector index, in-process PyTorch `BAAI/bge-m3` embedding inference, and Gemini/Groq LLM generation.
 
-#### 1. Chat Backend (Flask + RAG Pipeline)
-This container hosts the RAG queries, manages Gemini/Groq completions, and holds the FAISS similarity index.
-* **Hugging Face Setup**: Create a new Space using the **Docker** SDK (blank template).
-* **Local Embeddings Storage**: Upload your `embeddings_v3.pkl` file directly to the Space repository under the `IIPC_data/` folder (so the path is `IIPC_data/embeddings_v3.pkl` relative to `app.py`). The container will load it directly on boot, resulting in instant startup times.
-* **Required Space Secrets**:
-  Add the following variables in your Space's **Settings > Variables and secrets** tab:
-  * `GEMINI_API_KEY` — Google Gemini API key
-  * `GROQ_API_KEY` — Groq API key
-  * `EMBEDDING_API_URL` — Deployed Hugging Face Embedding API endpoint URL
-  * `HF_TOKEN` — Hugging Face fine-grained access token (with `read` permissions to query your private embedding space)
+#### All-in-One Backend Setup
+1. **Hugging Face Setup**: Create a new Space using the **Docker** SDK (blank template).
+2. **Repository Files**: Upload the contents of [Backend/](file:///c:/Users/youss/Desktop/iipc-assistant/Backend) (`Dockerfile`, `requirements.txt`, `app.py`).
+3. **Local Embeddings Storage**: Upload your `embeddings_v3.pkl` file directly to the Space repository under the `IIPC_data/` folder (so the path is `IIPC_data/embeddings_v3.pkl` relative to `app.py`). The container will load it on boot.
+4. **Offline Model Cache**: The `Dockerfile` automatically pre-downloads and caches `BAAI/bge-m3` into `/app/hf_cache` during the Docker build stage, resulting in instant container startup and zero rate limits.
+5. **Required Space Secrets**:
+   Add the following variables in your Space's **Settings > Variables and secrets** tab:
+   * `GEMINI_API_KEY` — Google Gemini API key
+   * `GROQ_API_KEY` — Groq API key
+   * `HF_TOKEN` — *(Optional)* Hugging Face access token for bearer authentication
 
-#### 2. Embedding API (FastAPI + BGE-M3 model)
-This container hosts local PyTorch inference for the `BAAI/bge-m3` model to compute query vectors locally without rate limits.
-* **Hugging Face Setup**: Create a new Space using the **Docker** SDK, upload files from [Backend/huggingface_space](file:///c:/Users/youss/Desktop/Projects/IIPC-Assistant/Backend/huggingface_space), and expose port `7860`.
-* The container creates a model cache directory at `/app/hf_cache` to store the tokenizer and model weights safely.
+
 
 ### Deployment on Vercel
 
@@ -196,12 +195,9 @@ iipc-assistant/
 │   ├── app.py                    # Flask application entry point
 │   ├── Dockerfile                # Backend container image
 │   ├── requirements.txt          # Python dependencies
-│   ├── huggingface_space/        # Embedding API for Hugging Face Spaces
-│   │   ├── Dockerfile
-│   │   ├── main.py               # FastAPI embedding server
-│   │   └── requirements.txt
-│   └── IIPC_data/                # Created & uploaded directly to HF Space (gitignored)
+│   └── IIPC_data/                # Archival embeddings and metadata (gitignored)
 ├── Frontend/
+
 │   ├── api/
 │   │   └── chat.js               # Vercel serverless proxy (API key forwarding + origin check)
 │   ├── src/
